@@ -107,7 +107,7 @@ footer{text-align:center;font-size:13px;color:var(--mute);margin-top:40px;font-f
 {
 /* 新增國家：在 TRIPS 加一筆，status 用 "open" 並填上 links；空白欄位會自動補在最後 */
 const TRIPS=[
- {ch:"Chapter 01",name:"歐洲篇",when:"'26.12.24 — '27.01.04",status:"open",stamp:["EUROPE","跨年"],color:"#e4572e",tape:"",
+ {ch:"Chapter 01",name:"歐洲極光篇",when:"'26.12.24 — '27.01.04",status:"open",stamp:["EUROPE","跨年"],color:"#e4572e",tape:"",
   route:[["阿姆斯特丹","#f7941d"],["冰島","#6cc6ee"],["Tromsø","#1fb25a"],["巴黎","#d93a96"],["布魯塞爾","#d9a514"]],
   note:"四條路線：冰島自駕，或挪威追極光＋迪士尼跨年。",
   links:[["拼貼 vlog 版","europe/","main"],["大富翁桌遊版","europe/boardgame.html",""]]}
@@ -136,7 +136,7 @@ document.getElementById("grid").innerHTML=TRIPS.map((t,i)=>`<article class="page
  document.getElementById("grat").innerHTML=g+`<line x1="0" y1="${Y(0)}" x2="960" y2="${Y(0)}" stroke-dasharray="6 6" stroke="rgba(228,87,46,.35)"/>`;
  const dart=(c)=>`<ellipse cx="9" cy="5" rx="9" ry="3" fill="rgba(0,0,0,.28)"/><path d="M0 0L5 -7" stroke="#9aa3ab" stroke-width="2.4" stroke-linecap="round"/><path d="M5 -7L13 -18" stroke="#2b2622" stroke-width="5" stroke-linecap="round"/><path d="M13 -18L20 -27" stroke="#d8dde2" stroke-width="1.6"/><path d="M20 -27l-9 -6 4 10z M20 -27l8 -2 -11 -5z" fill="${c}" stroke="#2b2622" stroke-width=".8" stroke-linejoin="round"/>`;
  const REG=[
-  {n:"歐洲",t:"歐洲篇已經寫好了！冰島、極光、巴黎、迪士尼都在裡面。",lo:[-26,40],la:[35,72],link:"europe/"},
+  {n:"歐洲",t:"歐洲極光篇已經寫好了！冰島、極光、巴黎、迪士尼都在裡面。",lo:[-26,40],la:[35,72],link:"europe/"},
   {n:"北極圈",t:"永夜和極光的地方，跨年再來一次？",la:[66,90]},
   {n:"中美洲・加勒比海",t:"海島、古文明，還有很多海龜。",lo:[-118,-59],la:[7,25]},
   {n:"格陵蘭",t:"冰河、冰山，比冰島還冰。",lo:[-75,-10],la:[59,84]},
@@ -155,7 +155,7 @@ document.getElementById("grid").innerHTML=TRIPS.map((t,i)=>`<article class="page
  const region=(lon,lat)=>REG.find(r=>(!r.lo||(lon>=r.lo[0]&&lon<=r.lo[1]))&&(!r.la||(lat>=r.la[0]&&lat<=r.la[1])));
  const onLand=(x,y)=>{try{return land.isPointInFill(new DOMPoint(x,y))}catch(e){try{const p=svg.createSVGPoint();p.x=x;p.y=y;return land.isPointInFill(p)}catch(e2){return true}}};
  /* fixed darts for written chapters */
- const PINS=[{lon:4,lat:52,c:"#e4572e",label:"歐洲篇"}];
+ const PINS=[{lon:4,lat:52,c:"#e4572e",label:"歐洲極光篇"}];
  const S=1.9;
  DG.innerHTML=PINS.map(p=>`<g transform="translate(${X(p.lon)},${Y(p.lat)}) scale(${S})">${dart(p.c)}<text class="maplabel" x="24" y="-28" style="font-size:11px">${p.label}</text></g>`).join("");
  {const ms=document.getElementById("ms");if(ms.scrollWidth>ms.clientWidth)ms.scrollLeft=X(15)/960*ms.scrollWidth-ms.clientWidth/2;}
@@ -179,7 +179,7 @@ document.getElementById("grid").innerHTML=TRIPS.map((t,i)=>`<article class="page
   const h=document.getElementById("hit"),ll=`${Math.abs(lat).toFixed(0)}°${lat>=0?"N":"S"} ${Math.abs(lon).toFixed(0)}°${lon>=0?"E":"W"}`;
   if(!r){h.innerHTML=`<small>SPLASH! · ${ll}</small><h3>掉進海裡了</h3><p>撲通！再射一次吧。</p><div class="btns"><button class="btn main" data-again>再射一次</button></div>`}
   else{const msg=`老婆！飛鏢射中「${r.n}」，下一篇去這裡好不好？`;
-   h.innerHTML=`<small>BULLSEYE! · ${ll}</small><h3>${r.n}</h3><p>${r.t}</p><div class="btns">${r.link?`<a class="btn main" href="${r.link}">打開歐洲篇</a>`:`<a class="btn main" href="https://line.me/R/share?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">用 LINE 告訴老婆</a>`}<button class="btn" data-again>再射一次</button></div>`}
+   h.innerHTML=`<small>BULLSEYE! · ${ll}</small><h3>${r.n}</h3><p>${r.t}</p><div class="btns">${r.link?`<a class="btn main" href="${r.link}">打開歐洲極光篇</a>`:`<a class="btn main" href="https://line.me/R/share?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">用 LINE 告訴老婆</a>`}<button class="btn" data-again>再射一次</button></div>`}
   h.classList.remove("on");void h.offsetWidth;h.classList.add("on");
  }
  function randomThrow(){let x,y,i=0;do{x=20+Math.random()*920;y=30+Math.random()*350;i++}while(i<80&&!(onLand(x,y)||Math.random()<.004));throwAt(x,y)}
