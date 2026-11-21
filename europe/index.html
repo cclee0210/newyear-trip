@@ -377,6 +377,30 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .rc.prop .nm{font-weight:700;line-height:1.2;padding:0 2px}
 .rc.prop small{font-size:11px;opacity:.75;font-family:ui-monospace,Menlo,monospace}
 @media(max-width:600px){.rc.prop .band{height:18px}.rc.prop .band .ic{width:14px;height:14px}.rc.prop .nm{font-size:10px}}
+
+/* piggy + ranks */
+.ring[hidden],.bank[hidden]{display:none!important}
+.piggy{margin:22px auto 0;max-width:620px;background:#fff;border-radius:12px;padding:14px 14px 16px;box-shadow:0 6px 14px rgba(0,0,0,.12)}
+.piggy h3{margin:0 0 10px}
+.pigrow{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:center}
+.pig{text-align:center}.pig svg{width:100%;height:auto}.pig small{display:block;color:var(--mute);font-size:12px}.pig b{font-size:15px}
+.pig .coin{animation:coin 2.2s ease-in-out infinite}
+@keyframes coin{0%{transform:translateY(-10px);opacity:0}30%{opacity:1}70%{transform:translateY(14px);opacity:1}100%{transform:translateY(14px);opacity:0}}
+.ranks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rk{border-radius:10px;padding:8px;text-align:center;border-top:6px solid var(--c);background:#faf7f0}
+.rk.gold{background:#fff6cc;box-shadow:0 0 0 3px #f2b134}
+.rk.poor{background:#efe9e1}
+.rk svg{width:100%;height:auto;max-height:70px}
+.rkn{font-size:13px;font-weight:700;color:var(--mute)}
+.rk.gold .rkn{color:#c98a00}
+.rkp{font-size:17px;font-weight:700}
+.rkv{font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:700}
+.rk b{display:block;font-size:15px}
+.histl{margin:10px 0 6px;padding-left:20px;font-size:14px}
+.histl li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;padding:4px 0;border-bottom:1px dotted #cfc3ae}
+.bgrp{margin:6px 0}.bgrp small{display:block;color:var(--mute);font-size:13px;margin-bottom:4px}
+@media(max-width:600px){.pigrow{grid-template-columns:80px minmax(0,1fr)}.rkv{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.pig .coin{animation:none}}
 </style>
 </head>
 <body>
@@ -430,7 +454,8 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 </div>
 <div class="bank" id="bank"></div>
 <div class="evt" id="rollmsg" aria-live="polite"></div>
-<div class="stack-btns" style="margin-top:12px"><button class="btn" id="settle">結算一下</button><button class="btn" id="newgame">重新開局（各出 €100）</button></div>
+<div class="stack-btns" style="margin-top:12px"><button class="btn main" id="bankgame">結束這局，輸贏存進存錢筒</button><button class="btn" id="settle">看目前戰況</button><button class="btn" id="newgame">放棄這局，重新開局</button></div>
+<section class="piggy" id="piggy" aria-label="存錢筒與排行榜"></section>
 <div class="pets" data-dog="哥哥加油！搶光她的錢！" data-cat="本喵只收現金。"></div>
 </div>
 </section>
@@ -542,7 +567,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 
 <script>
 {
-const P={ams:["阿姆斯特丹","#f7941d","阿姆"],ice:["冰島自駕","#6cc6ee","冰島"],tos:["Tromsø 極光","#1fb25a","極光"],par:["巴黎","#d93a96","巴黎"],dis:["迪士尼","#e2322b","樂園"],bru:["布魯塞爾","#f5c518","布魯"],home:["返程","#1f4fa0","回家"]};
+const P={dly:["日常","#9b5fc0","日常"],ams:["阿姆斯特丹","#f7941d","阿姆"],ice:["冰島自駕","#6cc6ee","冰島"],tos:["Tromsø 極光","#1fb25a","極光"],par:["巴黎","#d93a96","巴黎"],dis:["迪士尼","#e2322b","樂園"],bru:["布魯塞爾","#f5c518","布魯"],home:["返程","#1f4fa0","回家"]};
 const TK={a:"#4a78c2",b:"#9b5fc0",c:"#e4572e",d:"#d99a1e"};
 const DAYS=["12/25","12/26","12/27","12/28","12/29","12/30","12/31","1/1","1/2","1/3"];
 const PLANS=[
@@ -609,6 +634,7 @@ const per=p=>`NT$${f(Math.round(p.lo/2))}–${f(Math.round(p.hi/2))}`;
 /* ---------- drawings ---------- */
 const S='stroke="#151515" stroke-width="1.3" stroke-linejoin="round"';
 const ICON={
+ dly:`<path d="M3 11l9-7 9 7v10H3z" fill="#fff" stroke="#151515" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 21v-6h4v6z" fill="#151515"/>`,
  ams:`<path d="M5 21V10l3.5-4 3.5 4 3.5-4 3.5 4v11z" fill="#fff" ${S}/><path d="M7.5 12h2v2.5h-2zM14.5 12h2v2.5h-2zM11 16h2v5h-2z" fill="#151515"/>`,
  ice:`<path d="M2 20l6.5-11 3.5 5 3-4 7 10z" fill="#fff" ${S}/><path d="M8.5 9l-2.2 3.7 2.2-.9 1.6 1.3z" fill="#6cc6ee"/>`,
  tos:`<path d="M3 13c3-6 6 2 9-4s6 2 9-4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M3 13c3-6 6 2 9-4s6 2 9-4" fill="none" stroke="#151515" stroke-width=".8"/><path d="M2 21c4-4 8-4 10-2s6-2 10 2z" fill="#fff" ${S}/><circle cx="6" cy="5" r="1" fill="#fff"/><circle cx="17" cy="15" r="1" fill="#fff"/>`,
@@ -640,7 +666,7 @@ function go(v,push=true){
 
 /* ---------- routes ---------- */
 $("dates").innerHTML=DAYS.map(d=>`<span>${d}</span>`).join("");
-$("legend").innerHTML=Object.keys(P).map(k=>`<span>${sw(k)}${P[k][0]}</span>`).join("");
+$("legend").innerHTML=Object.keys(P).filter(k=>k!="dly").map(k=>`<span>${sw(k)}${P[k][0]}</span>`).join("");
 const MAX=280000,MIN=200000,pct=v=>((v-MIN)/(MAX-MIN)*100).toFixed(1);
 $("board").insertAdjacentHTML("beforeend",PLANS.map(p=>`<button class="track" data-p="${p.id}" aria-label="方案 ${p.k} ${p.name}">
 <span class="who"><span class="pawn" style="--k:${TK[p.id]}">${p.k}</span><span><b>${p.name}</b><small>每人 ${per(p)}</small></span></span>
@@ -692,18 +718,22 @@ const RING=[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4
 const CELLS=["go","p0","fine","p1","jail","p2","chance","p3","rest","p4","fate","p5","tojail","p6","tax","p7"];
 const EVT={go:["起點","GO"],fine:["罰錢","FINE"],jail:["坐牢","JAIL"],chance:["機會","?"],rest:["休息站","拿走罐子"],fate:["命運","!"],tojail:["去坐牢","GO TO JAIL"],tax:["觀光稅","TAX"]};
 const PRICES=[6,6,8,8,10,10,12,14];
+const BOARDS=[...PLANS.map(p=>({id:p.id,k:"方案 "+p.k,name:p.name,grp:"歐洲極光篇"})),{id:"daily",k:"日常篇",name:"日常篇",grp:"平常"}];
+const bd=id=>BOARDS.find(x=>x.id==id);
 const STOPS={
  a:[["阿姆斯特丹","ams"],["Eyrarbakki","ice"],["黃金圈","ice"],["塞里雅蘭瀑布","ice"],["黑沙灘","ice"],["藍冰洞","ice"],["冰河湖","ice"],["雷克雅維克","ice"]],
  b:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["巴黎鐵塔","par"],["羅浮宮","par"],["迪士尼樂園","dis"],["Eurostar","bru"],["布魯塞爾","bru"]],
  c:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["巴黎市區","par"],["蒙馬特","par"],["迪士尼樂園","dis"],["Crowne Plaza","dis"],["布魯塞爾","bru"]],
- d:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["布魯塞爾大廣場","bru"],["尿尿小童","bru"],["鬆餅店","bru"],["迪士尼樂園","dis"],["Eurostar","bru"]]};
+ d:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["布魯塞爾大廣場","bru"],["尿尿小童","bru"],["鬆餅店","bru"],["迪士尼樂園","dis"],["Eurostar","bru"]],
+ daily:[["早餐店","dly"],["帶毛狗散步","dly"],["全聯","dly"],["手搖飲","dly"],["夜市","dly"],["電影院","dly"],["IKEA","dly"],["溫泉旅館","dly"]]};
 const PL=[{n:"老婆",c:"#ff6b5b",vb:"4 0 28 52"},{n:"老公",c:"#3a6fd8",vb:"28 0 28 52"}];
 const FINES=["用三種語言說「我好冷」","幫對方拍一張他指定姿勢的照片","學企鵝走路 10 步","對著鏡頭唱一句跨年歌","模仿賓狗的臭臉 5 秒","用超浮誇的語氣誇對方今天的穿搭"];
 const TAXES=["跟一個雕像擺一樣的姿勢合照","用當地語言跟店員說謝謝","在街上跳 5 秒的勝利舞","嚐一口當地最奇怪的零食","找一個路人幫你們拍合照"];
 const FATES=[["被大鵝追！逃跑時掉了 €3","pot",-3],["撿到一顆雪球丟中對方，對方賠你 €3","opp",3],["遇到羊群學羊叫，從旅費罐拿 €2 小費","potget",2],["被海鷗搶走薯條，崩潰付 €2 進罐子","pot",-2],["馴鹿擋路，用馴鹿的姿勢走 5 步","none",0],["路邊的貓不理你，學賓狗臭臉回敬牠","none",0],["被風吹走帽子，對方幫你追回來，付他 €2","opp",-2],["街頭藝人表演，跟著扭 5 秒，打賞 €1 進罐子","pot",-1]];
 const CHANCES=[["前進 3 格！","move",3],["倒退 2 格……","move",-2],["獲得出獄卡一張","card",0],["前往最近的景點","spot",0],["向對方收 €5","opp",5],["給對方 €3 當小費","opp",-3],["親對方一下才能繼續","none",0]];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-const NEW=(plan)=>({plan:plan||null,pos:[0,0],bal:[100,100],pot:0,own:{},jail:[0,0],card:[false,false],turn:0,over:false,seq:0});
+const NEW=(plan)=>({plan:plan||null,pos:[0,0],bal:[100,100],pot:0,own:{},jail:[0,0],card:[false,false],turn:0,over:false,seq:0,piggy:[0,0],hist:[]});
+const carry=(o,n)=>{n.piggy=(o&&o.piggy)||[0,0];n.hist=(o&&o.hist)||[];return n};
 let G=(()=>{try{const g=JSON.parse(localStorage.getItem("ntrip-mono"));return g&&g.bal?Object.assign(NEW(),g):NEW()}catch(e){return NEW()}})();
 const save=()=>{try{localStorage.setItem("ntrip-mono",JSON.stringify(G))}catch(e){}if(typeof push=="function"&&!save.quiet)push()};
 const eur=v=>`€${v}`;
@@ -718,7 +748,8 @@ function buildRing(){
 }
 function place(pi){const c=$("rc"+G.pos[pi]),tk=$("tk"+pi);if(!c||!tk)return;const off=(pi?1:-1)*(c.offsetWidth*.18);tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2+off}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`}
 function lit(i){document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));const c=$("rc"+i);c&&c.classList.add("lit")}
-function renderPick(){const p=PLANS.find(x=>x.id==G.plan);$("dicetitle").textContent=p?`${p.name}・大富翁`:"跨年大富翁・雙人對戰";$("planpick").innerHTML=p?`<span>目前路線：<b>方案 ${p.k}</b></span><button class="linkbtn" data-chg="1">換路線</button>`:`<p><b>先選定要走哪條路線</b>，棋盤會變成那條路線的行程！</p><div class="chips" style="justify-content:center">${PLANS.map(x=>`<button class="chip" data-setplan="${x.id}">方案 ${x.k} ${x.name.split("＋")[0]}${x.id=="a"?"":"＋…"}</button>`).join("")}</div><p class="hint">還沒決定的話，先去抽機會卡。</p>`;$("ring").hidden=!p;$("bank").hidden=!p}
+const boardChips=()=>["歐洲極光篇","平常"].map(g=>`<div class="bgrp"><small>${g}</small><div class="chips" style="justify-content:center">${BOARDS.filter(b=>b.grp==g).map(b=>`<button class="chip" data-setplan="${b.id}" aria-pressed="${b.id==G.plan}">${b.k}${b.id=="daily"?"":" "+b.name.split("＋")[0]}</button>`).join("")}</div></div>`).join("");
+function renderPick(){const p=bd(G.plan);$("dicetitle").textContent=p?`${p.name}・大富翁`:"旅行大富翁・雙人對戰";$("planpick").innerHTML=p?`<span>目前棋盤：<b>${p.k}</b></span><button class="linkbtn" data-chg="1">換棋盤</button>`:`<p><b>先選棋盤</b>：旅行的路線，或平常的日常篇</p>${boardChips()}`;$("ring").hidden=!p;$("bank").hidden=!p;renderPiggy()}
 function render(){
  renderPick();
  if(G.plan){[0,1].forEach(place);document.querySelectorAll(".own").forEach(o=>{const w=G.own[o.dataset.own];o.style.background=w==null?"transparent":PL[w].c})}
@@ -726,11 +757,11 @@ function render(){
  $("turn").innerHTML=G.over?"遊戲結束":`輪到 <b style="color:${PL[G.turn].c}">${PL[G.turn].n}</b>`;
  save();gate();
 }
-function setPlan(id){if(G.plan&&G.plan!==id&&(G.seq||G.pot||G.bal[0]!=100||G.bal[1]!=100)){if(!confirmSwitch(id))return}{const sq=(G.seq||0)+1;G=NEW(id);G.seq=sq;}pending=null;busy=false;buildRing();render();msg(`路線定好了！棋盤變成「${PLANS.find(x=>x.id==id).name}」的行程。<br>老婆、老公各出 €100，老婆先擲！`)}
-let switchTo=null;function confirmSwitch(id){if(switchTo===id){switchTo=null;return true}switchTo=id;msg(`換路線會重新開局，目前戰況會清掉。<div class="acts"><button class="btn main" data-setplan="${id}">確定換成方案 ${id.toUpperCase()}</button></div>`);return false}
+function setPlan(id){if(G.plan&&G.plan!==id&&(G.seq||G.pot||G.bal[0]!=100||G.bal[1]!=100)){if(!confirmSwitch(id))return}{const sq=(G.seq||0)+1;G=carry(G,NEW(id));G.seq=sq;}pending=null;busy=false;buildRing();render();msg(`棋盤定好了：「${bd(id).name}」。<br>老婆、老公各出 €100，老婆先擲！`)}
+let switchTo=null;function confirmSwitch(id){if(switchTo===id){switchTo=null;return true}switchTo=id;msg(`換棋盤會重新開局，目前這局的戰況會清掉（存錢筒保留）。<div class="acts"><button class="btn main" data-setplan="${id}">確定換成${bd(id).k}</button></div>`);return false}
 function pay(from,to,v){v=Math.max(0,v);if(from!=="pot"){G.bal[from]-=v}else{v=Math.min(v,G.pot);G.pot-=v}if(to==="pot")G.pot+=v;else if(to!=null)G.bal[to]+=v;return v}
 function settleText(){const s=(n,d)=>`${n}${d>=0?"賺":"賠"} ${eur(Math.abs(d))}`;return `結算：${s("老婆",G.bal[0]-100)}、${s("老公",G.bal[1]-100)}，旅費罐 ${eur(G.pot)} 一起拿去吃甜點。`}
-function checkOver(){const b=G.bal.findIndex(x=>x<0);if(b>=0){G.over=true;G.seq=(G.seq||0)+1;G.last=`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}`;render();msg(`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}`);if(typeof celebrate=="function")celebrate("c");return true}return false}
+function checkOver(){const b=G.bal.findIndex(x=>x<0);if(b>=0){G.over=true;G.seq=(G.seq||0)+1;G.last=`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}<br>按「結束這局，輸贏存進存錢筒」記錄戰績。`;render();msg(`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}`);if(typeof celebrate=="function")celebrate("c");return true}return false}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function die(el,n){el.innerHTML=[...Array(9)].map((_,i)=>`<i style="visibility:${PIPS[n].includes(i)?"visible":"hidden"}"></i>`).join("")}
 die($("d1"),5);die($("d2"),2);
@@ -788,14 +819,27 @@ async function roll(){
 document.addEventListener("click",e=>{
  const a=e.target.closest("[data-act]");if(a&&pending){const fn=pending[+a.dataset.act];pending=null;fn();return}
  const sp=e.target.closest("[data-setplan]");if(sp){setPlan(sp.dataset.setplan);if(sp.dataset.golater)go("dice");return}
- if(e.target.closest("[data-chg]")){$("planpick").innerHTML=`<div class="chips" style="justify-content:center">${PLANS.map(x=>`<button class="chip" data-setplan="${x.id}" aria-pressed="${x.id==G.plan}">方案 ${x.k}</button>`).join("")}</div><p class="hint">換路線會重新開局。</p>`;return}
+ if(e.target.closest("[data-chg]")){$("planpick").innerHTML=boardChips()+`<p class="hint">換棋盤會重新開局（存錢筒保留）。</p>`;return}
  const m=e.target.closest("[data-me]");if(m){ME=m.dataset.me;try{localStorage.setItem(ME_KEY,ME)}catch(x){}renderWho();gate(true);return}
  const cl=e.target.closest("[data-copylink]");if(cl){navigator.clipboard.writeText(cl.dataset.copylink).then(()=>{cl.textContent="已複製！"}).catch(()=>{cl.textContent="請手動複製網址"});return}
- if(e.target.closest("#newgame")){const p=G.plan,sq=(G.seq||0)+1;G=NEW(p);G.seq=sq;pending=null;busy=false;roll.bailAsked=false;buildRing();render();msg(p?"新的一局！老婆、老公各出 €100。<br>老婆先擲！":"先選定路線再開局。");return}
+ if(e.target.closest("#bankgame")){bankGame();return}
+ if(e.target.closest("#newgame")){const p=G.plan,sq=(G.seq||0)+1;G=carry(G,NEW(p));G.seq=sq;pending=null;busy=false;roll.bailAsked=false;buildRing();render();msg(p?"新的一局！老婆、老公各出 €100。<br>老婆先擲！":"先選定路線再開局。");return}
  if(e.target.closest("#settle")){msg(`<b>目前戰況</b><br>${settleText()}`);return}
 });
 buildRing();
 
+
+
+/* ---------- piggy bank + ranking ---------- */
+const PIGSVG=`<svg viewBox="0 0 120 90" aria-hidden="true"><ellipse cx="60" cy="84" rx="40" ry="4" fill="rgba(0,0,0,.15)"/><ellipse cx="58" cy="50" rx="40" ry="30" fill="#f7a8c0" stroke="#2b2622" stroke-width="2.5"/><circle cx="30" cy="30" r="9" fill="#f7a8c0" stroke="#2b2622" stroke-width="2.5"/><ellipse cx="96" cy="52" rx="9" ry="11" fill="#f48fb1" stroke="#2b2622" stroke-width="2.5"/><circle cx="94" cy="49" r="1.8" fill="#2b2622"/><circle cx="99" cy="55" r="1.8" fill="#2b2622"/><circle cx="78" cy="40" r="3" fill="#2b2622"/><rect x="48" y="20" width="22" height="5" rx="2.5" fill="#2b2622"/><rect x="34" y="72" width="9" height="12" rx="3" fill="#f7a8c0" stroke="#2b2622" stroke-width="2.5"/><rect x="70" y="72" width="9" height="12" rx="3" fill="#f7a8c0" stroke="#2b2622" stroke-width="2.5"/><path d="M18 46c-8-2-8 8-2 8" fill="none" stroke="#2b2622" stroke-width="2.5" stroke-linecap="round"/><g class="coin"><circle cx="59" cy="8" r="7" fill="#f2b134" stroke="#2b2622" stroke-width="2"/><text x="59" y="11.5" text-anchor="middle" font-size="9" font-weight="700" fill="#2b2622">€</text></g></svg>`;
+const BIGG=`<svg viewBox="0 0 120 80" aria-hidden="true"><ellipse cx="60" cy="74" rx="52" ry="4" fill="rgba(0,0,0,.15)"/><rect x="14" y="30" width="92" height="34" rx="4" fill="#1f1f1f" stroke="#111" stroke-width="2"/><rect x="26" y="12" width="66" height="22" rx="3" fill="#262626" stroke="#111" stroke-width="2"/><rect x="31" y="16" width="25" height="15" rx="1.5" fill="#9fd0f0"/><rect x="61" y="16" width="26" height="15" rx="1.5" fill="#9fd0f0"/><rect x="100" y="36" width="8" height="6" rx="1" fill="#fff6b0"/><rect x="16" y="46" width="88" height="3" fill="#555"/><rect x="104" y="20" width="6" height="18" rx="2" fill="#333"/><circle cx="34" cy="64" r="11" fill="#111"/><circle cx="34" cy="64" r="5" fill="#bbb"/><circle cx="88" cy="64" r="11" fill="#111"/><circle cx="88" cy="64" r="5" fill="#bbb"/><path d="M6 20l4 3M4 30h5M8 10l3 5" stroke="#f2b134" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+const BEGGAR=`<svg viewBox="0 0 120 80" aria-hidden="true"><ellipse cx="60" cy="76" rx="44" ry="3.5" fill="rgba(0,0,0,.15)"/><path d="M38 74c0-22 8-34 22-34s22 12 22 34z" fill="#a1876a" stroke="#2b2622" stroke-width="2"/><rect x="47" y="52" width="9" height="9" fill="#c9b08f" stroke="#2b2622" stroke-width="1.2" transform="rotate(-8 51 56)"/><circle cx="60" cy="30" r="13" fill="#f6d2b8" stroke="#2b2622" stroke-width="2"/><path d="M47 28c0-10 6-13 13-13s13 3 13 13c-3-4-8-6-13-6s-10 2-13 6z" fill="#6b5a4a"/><path d="M54 33q2-2 4 0M62 33q2-2 4 0" stroke="#2b2622" stroke-width="1.4" fill="none"/><path d="M56 39q4-2 8 0" stroke="#2b2622" stroke-width="1.4" fill="none"/><circle cx="66" cy="28" r="2" fill="#7fb6e0"/><path d="M80 66h22l-3 8H83z" fill="#c9a24a" stroke="#2b2622" stroke-width="2"/><ellipse cx="91" cy="66" rx="11" ry="2.5" fill="#8a6a2a"/><circle cx="88" cy="64.5" r="1.6" fill="#f2b134"/><path d="M78 60l4 4" stroke="#2b2622" stroke-width="2" stroke-linecap="round"/></svg>`;
+function renderPiggy(){const el=$("piggy");if(!el)return;const pg=G.piggy||[0,0],tot=pg[0]+pg[1];const sgn=v=>(v>0?"+":v<0?"−":"")+"€"+Math.abs(v);
+ let rank=[0,1].sort((a,b)=>pg[b]-pg[a]);const tie=pg[0]==pg[1];
+ const card=(pi,pos)=>{const first=pos==0&&!tie,last=pos==1&&!tie;return `<div class="rk ${first?"gold":""} ${last?"poor":""}" style="--c:${PL[pi].c}"><div class="rkn">${tie?"平手":first?"第一名":"第二名"}</div><div class="rkp">${PL[pi].n}</div><div class="rkv">${sgn(pg[pi])}</div>${first?BIGG+"<b>開大G！</b>":last?BEGGAR+"<b>淪為乞丐……</b>":"<b>勢均力敵</b>"}</div>`};
+ el.innerHTML=`<h3 class="center">存錢筒 &amp; 排行榜</h3><div class="pigrow"><div class="pig">${PIGSVG}<small>累積輸贏</small><b>${G.hist.length} 局</b></div><div class="ranks">${rank.map((pi,i)=>card(pi,i)).join("")}</div></div>`+(G.hist.length?`<details class="more"><summary>歷史戰績</summary><div class="in"><ol class="histl">${G.hist.map(h=>`<li><span>${h.d}・${h.b}</span><span>老婆 ${sgn(h.net[0])}／老公 ${sgn(h.net[1])}</span></li>`).join("")}</ol><button class="linkbtn" id="clearpig">清空存錢筒</button></div></details>`:`<p class="hint">每局按「結束這局，輸贏存進存錢筒」，金額就會一直累積。</p>`)}
+function bankGame(){if(!G.plan){msg("還沒開局喔。");return}const net=[G.bal[0]-100,G.bal[1]-100];const d=new Date(),ds=`${d.getMonth()+1}/${d.getDate()}`;const piggy=[(G.piggy||[0,0])[0]+net[0],(G.piggy||[0,0])[1]+net[1]];const hist=[{d:ds,b:bd(G.plan).name,net},...(G.hist||[])].slice(0,20);const p=G.plan,sq=(G.seq||0)+1;G=NEW(p);G.piggy=piggy;G.hist=hist;G.seq=sq;pending=null;busy=false;roll.bailAsked=false;buildRing();render();const w=net[0]==net[1]?"平手":net[0]>net[1]?"老婆":"老公";msg(`<b>這局存進存錢筒了！</b>這局${w=="平手"?"平手":w+"贏"}：老婆 ${net[0]>=0?"+":""}€${net[0]}、老公 ${net[1]>=0?"+":""}€${net[1]}。<br>新的一局開始，各出 €100，老婆先擲！`);const r=$("piggy");r&&r.scrollIntoView({behavior:"smooth",block:"center"});if(typeof celebrate=="function")celebrate("d")}
+document.addEventListener("click",e=>{if(e.target.closest("#clearpig")){G.piggy=[0,0];G.hist=[];G.seq=(G.seq||0)+1;render();msg("存錢筒清空了。")}});
 
 /* ---------- live room via Firebase Realtime Database (REST + EventSource) ---------- */
 const DB="https://new-year-trip-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -947,13 +991,14 @@ document.addEventListener("click",e=>{
  document.querySelector(".gtabs").addEventListener("click",e=>{const b=e.target.closest(".gtab");if(!b)return;document.querySelectorAll(".gtab").forEach(x=>x.setAttribute("aria-selected",x==b));document.querySelectorAll(".gpanel").forEach(p=>p.hidden=p.id!="g-"+b.dataset.g);if(b.dataset.g=="scratch")requestAnimationFrame(()=>{if(!$("mission").textContent)newCard();else cover()})});
 }
 
+const MONO=document.documentElement.dataset.mono==="1";
 function route(){
  const hsh=location.hash.slice(1),m=hsh.match(/^plan-([abcd])$/);
  const rm=hsh.match(/^room=([a-z0-9]{6,32})$/);if(rm){joinRoom(rm[1]);view("dice");try{history.replaceState(null,"","#dice")}catch(e){}return}
  const dm=hsh.match(/^dice=(.+)$/);if(dm){loadShared(dm[1]);view("dice");try{history.replaceState(null,"","#dice")}catch(e){}return}
  if(m){if(m[1]!=cur)show(m[1],"");else view("plan");return}
  if(["routes","dice","quiz","fb","games"].includes(hsh)){go(hsh,false);return}
- view("start");
+ view(MONO?"dice":"start");if(MONO)resetRing();
 }
 if(ROOM){listen();renderLive();fetch(roomURL()).then(r=>r.json()).then(applyRemote).catch(()=>{})}else renderLive();
 route();
