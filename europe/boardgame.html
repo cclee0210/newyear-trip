@@ -286,6 +286,22 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .mission{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:18px;font-size:22px;font-weight:700;line-height:1.4;background:repeating-linear-gradient(45deg,#fff8b8 0 14px,#fff3a0 14px 28px);color:#2b2622}
 .scratch canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.wheel{transition:none}.wres.win{animation:none}}
+
+/* monopoly ring 5x5 */
+.ring{grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:repeat(5,minmax(70px,auto))!important;max-width:620px}
+.mid{grid-area:2/2/5/5!important}
+.mid p{font-size:15px;line-height:1.5}
+.rc{font-size:12px}
+.rc.ev b{font-size:16px;line-height:1.1}
+.rc.ev small{font-size:10px;letter-spacing:.04em;opacity:.85}
+.rc.ev-fine,.rc.ev-tax{background:#ffe3d6}
+.rc.ev-jail{background:repeating-linear-gradient(90deg,#fff 0 9px,#d9d9d9 9px 12px)}
+.rc.ev-tojail{background:#2b2622;color:#fff}
+.rc.ev-chance{background:#f7b04a;color:#2b2622}
+.rc.ev-fate{background:#8ec9ea;color:#2b2622}
+.rc.ev-rest{background:#d6f0c8}
+.rc.lit{outline:3px solid #e4572e;outline-offset:-3px}
+@media(max-width:600px){.ring{grid-template-rows:repeat(5,minmax(60px,auto))!important;gap:4px!important}.rc{font-size:10.5px;padding:3px 2px}.rc .pin{width:24px;height:24px;font-size:14px}.rc.ev b{font-size:13px}.mid{padding:6px}.mid p{font-size:13px}.die{width:44px;height:44px}}
 </style>
 </head>
 <body>
@@ -328,9 +344,9 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <section class="view" id="v-dice">
 <div class="narrow">
 <h2 class="center">擲骰子</h2>
-<p class="sub center">棋子從起點出發，停在哪一格就走那條路線。</p>
+<p class="sub center">大富翁規則：停到方案格就走那條路線。途中有罰錢、坐牢、機會、命運！</p>
 <div class="ring" id="ring">
-<div class="mid"><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button><p id="rollmsg" aria-live="polite">純屬好玩，認真比較請抽機會卡。</p></div>
+<div class="mid"><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button><p id="rollmsg" aria-live="polite">從起點出發，停到方案格就決定走那條！</p></div>
 </div>
 <div class="pets" data-dog="擲大一點！汪！" data-cat="本喵押 C。"></div>
 </div>
@@ -588,27 +604,55 @@ async function walkTo(id){
 }
 window.addEventListener("resize",()=>{});
 
-/* ---------- dice ring ---------- */
-const RING=[[0,0],[0,1],[0,2],[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,0],[1,0]];
-const RP=RING.map((_,i)=>i?"abcd"[(i-1)%4]:null);
-$("ring").insertAdjacentHTML("afterbegin",RING.map(([r,c],i)=>{const id=RP[i];if(!id)return `<div class="rc go" id="rc0" style="grid-area:${r+1}/${c+1}">起點<small style="font-size:12px">GO</small></div>`;const p=PLANS.find(x=>x.id==id);return `<div class="rc" id="rc${i}" style="grid-area:${r+1}/${c+1};--k:${TK[id]}"><span class="pin">${p.k}</span>${p.name.split("＋")[0]}${id=="a"?"":"＋"+p.name.split("＋")[1].replace(/ /g,"")}</div>`}).join("")+`<div class="token" id="rtoken">${COUPLE}</div>`);
+/* ---------- dice ring (monopoly board) ---------- */
+const RING=[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[3,0],[2,0],[1,0]];
+const CELLS=["go","a","fine","b","jail","c","chance","d","rest","a","fate","b","tojail","c","tax","d"];
+const EVT={go:["起點","GO"],fine:["罰錢","FINE"],jail:["坐牢","JAIL"],chance:["機會","?"],rest:["休息站","FREE"],fate:["命運","!"],tojail:["去坐牢","GO TO JAIL"],tax:["觀光稅","TAX"]};
+const FINES=["罰錢！請對方喝一杯熱可可","罰錢！今晚的甜點你出","超速罰單：幫對方背包包 1 小時","罰錢！下一次搭車的車票你買","亂停車罰單：幫對方拍 10 張美照"];
+const TAXES=["觀光稅：買一張明信片寄給毛狗賓狗","觀光稅：今天的咖啡錢你出","觀光稅：請對方吃一個當地小點心"];
+const CHANCES=[["機會：老公親老婆一下，才能繼續",0],["機會：前進 3 格！",3],["機會：倒退 2 格……",-2],["機會：獲得出獄卡一張，下次坐牢直接出來",0,"card"],["機會：前往最近的方案格！",0,"plan"]];
+const FATES=["命運：毛狗賓狗想你們了，今晚視訊一下","命運：撿到旅費 NT$500！今晚加菜","命運：雪下太大，休息一下再擲","命運：被鴿子攻擊！一起大笑 10 秒","命運：抽到隱藏美食，下一餐由你決定"];
+const RESTS=["休息站：互相按摩肩膀一分鐘","休息站：一起喝一口熱飲再出發","休息站：給對方一個擁抱"];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+let rpos=0,inJail=0,freeCard=false;
+const ringCell=(t,i)=>{const [r,c]=RING[i];const at=`grid-area:${r+1}/${c+1}`;if(EVT[t]){return `<div class="rc ev ev-${t}" id="rc${i}" style="${at}"><b>${EVT[t][0]}</b><small>${EVT[t][1]}</small></div>`}const p=PLANS.find(x=>x.id==t);return `<div class="rc" id="rc${i}" style="${at};--k:${TK[t]}"><span class="pin">${p.k}</span>${p.name.split("＋")[0]}${t=="a"?"":"＋"+p.name.split("＋")[1].replace(/ /g,"")}</div>`};
+$("ring").insertAdjacentHTML("afterbegin",CELLS.map(ringCell).join("")+`<div class="token" id="rtoken">${COUPLE}</div>`);
 function rplace(i){const c=$("rc"+i),tk=$("rtoken");tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`;document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));c.classList.add("lit")}
-function resetRing(){setTimeout(()=>rplace(0),30);$("rollmsg").textContent="純屬好玩，認真比較請抽機會卡。"}
+const msg=(h)=>{$("rollmsg").innerHTML=h};
+function resetRing(){setTimeout(()=>rplace(rpos),30);if(!inJail)msg("從起點出發，停到方案格就決定走那條！<br>小心罰錢和坐牢。")}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function die(el,n){el.innerHTML=[...Array(9)].map((_,i)=>`<i style="visibility:${PIPS[n].includes(i)?"visible":"hidden"}"></i>`).join("")}
 die($("d1"),5);die($("d2"),2);
+async function walk(steps){const tk=$("rtoken"),dir=steps<0?-1:1;for(let k=0;k<Math.abs(steps);k++){rpos=(rpos+dir+16)%16;tk.classList.remove("hop");void tk.offsetWidth;tk.classList.add("hop");rplace(rpos);if(dir>0&&rpos==0)msg("經過起點！老公發旅費 NT$2,000 💸".replace(" 💸",""));await wait(260)}}
+async function land(n){
+ const t=CELLS[rpos];
+ if(PLANS.some(p=>p.id==t)){msg(`停在方案 ${t.toUpperCase()}！`);await wait(700);busy=false;show(t,`骰到 ${n} 點，停在方案 ${t.toUpperCase()}`);return}
+ if(t=="go"){msg("剛好停在起點！領 NT$2,000 旅費，再擲一次");}
+ else if(t=="fine"){msg(`<b>${pick(FINES)}</b><br>付完再擲一次`)}
+ else if(t=="tax"){msg(`<b>${pick(TAXES)}</b><br>繳完再擲一次`)}
+ else if(t=="jail"){msg("只是來探監，沒事！再擲一次")}
+ else if(t=="rest"){msg(`<b>${pick(RESTS)}</b><br>休息完再擲一次`)}
+ else if(t=="fate"){msg(`<b>${pick(FATES)}</b><br>再擲一次`)}
+ else if(t=="chance"){const c=pick(CHANCES);msg(`<b>${c[0]}</b>`);await wait(1100);
+  if(c[2]=="card"){freeCard=true;msg("<b>收到出獄卡！</b><br>再擲一次")}
+  else if(c[2]=="plan"){let s=0;do{s++}while(!PLANS.some(p=>p.id==CELLS[(rpos+s)%16]));await walk(s);return land(n)}
+  else if(c[1]){await walk(c[1]);return land(n)}
+  else msg(`<b>${c[0]}</b><br>做完再擲一次`)}
+ else if(t=="tojail"){msg("<b>去坐牢！</b>");await wait(700);rpos=4;rplace(4);
+  if(freeCard){freeCard=false;msg("<b>使用出獄卡，馬上出獄！</b><br>再擲一次")}
+  else{inJail=1;msg("<b>坐牢中！</b>要擲出一樣的點數才能出獄。<br>沒擲出來的話要接受懲罰")}}
+ busy=false;
+}
 async function roll(){
  if(busy)return;busy=true;
  const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6),n=a+b;
  for(const [el,v] of [[$("d1"),a],[$("d2"),b]]){el.classList.remove("roll");void el.offsetWidth;el.classList.add("roll");die(el,v)}
- $("rollmsg").textContent=`骰到 ${n} 點！`;
- rplace(0);await wait(650);
- const tk=$("rtoken");
- for(let i=1;i<=n;i++){tk.classList.remove("hop");void tk.offsetWidth;tk.classList.add("hop");rplace(i%12);await wait(280)}
- const id=RP[n%12];
- if(!id){$("rollmsg").textContent="繞一圈回到起點！再擲一次～";busy=false;return}
- $("rollmsg").textContent=`停在方案 ${id.toUpperCase()}！`;
- await wait(700);busy=false;show(id,`骰到 ${n} 點，停在方案 ${id.toUpperCase()}`);
+ if(inJail){await wait(650);
+  if(a==b){inJail=0;msg(`擲出 ${a}、${b} 一樣的點數！<b>出獄！</b>`);await wait(800)}
+  else if(inJail>=2){inJail=0;msg(`<b>關滿了，放你出來</b>，但要學賓狗喵喵叫三聲`);await wait(1300)}
+  else{inJail++;msg(`<b>還在坐牢！</b>懲罰：${pick(["學毛狗吐舌頭 5 秒","說出對方三個優點","唱一句跨年歌","用法文說「我愛你」"])}<br>再擲一次試試`);busy=false;return}}
+ else{msg(`骰到 ${n} 點！`);await wait(650)}
+ await walk(n);await land(n);
 }
 
 /* ---------- title deed ---------- */
@@ -715,7 +759,7 @@ document.addEventListener("click",e=>{
 /* mini games */
 {
  const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
- const EN={"老公的卡":"Hubby's card","老婆的卡":"Wife's card","AA 各付一半":"Split 50/50","猜拳輸的付":"Rock-paper-scissors loser pays","老公請客":"Hubby's treat","老婆請客":"Wife's treat","冰島熱狗堡":"Icelandic hot dog","羊肉湯":"Lamb soup","炸魚薯條":"Fish & chips","超市自己煮":"Cook from the supermarket","冰島優格 Skyr":"Skyr yogurt","加油站漢堡":"Gas-station burger","帝王蟹":"King crab","鮭魚奶油湯":"Creamy salmon soup","馴鹿肉排":"Reindeer steak","北極啤酒館":"Arctic beer hall","肉桂捲咖啡":"Cinnamon bun & coffee","可頌早餐":"Croissant breakfast","法式小酒館":"French bistro","可麗餅":"Crêpes","甜點店":"Pastry shop","生蠔白酒":"Oysters & white wine","麵包店三明治":"Bakery sandwich","列日鬆餅":"Liège waffle","淡菜配薯條":"Mussels & fries","比利時啤酒館":"Belgian beer bar","巧克力店":"Chocolate shop","炸薯條":"Belgian fries","燉牛肉":"Beef stew","荷蘭鬆餅":"Dutch pancakes","鯡魚堡":"Herring sandwich","起司店試吃":"Cheese tasting","印尼飯":"Indonesian rice table","炸肉丸":"Bitterballen","運河咖啡":"Canal-side café"};
+ const EN={"老公的卡":"Husband's card","老婆的卡":"Wife's card","AA 各付一半":"Split 50/50","猜拳輸的付":"Rock-paper-scissors loser pays","老公請客":"Husband's treat","老婆請客":"Wife's treat","冰島熱狗堡":"Icelandic hot dog","羊肉湯":"Lamb soup","炸魚薯條":"Fish & chips","超市自己煮":"Cook from the supermarket","冰島優格 Skyr":"Skyr yogurt","加油站漢堡":"Gas-station burger","帝王蟹":"King crab","鮭魚奶油湯":"Creamy salmon soup","馴鹿肉排":"Reindeer steak","北極啤酒館":"Arctic beer hall","肉桂捲咖啡":"Cinnamon bun & coffee","可頌早餐":"Croissant breakfast","法式小酒館":"French bistro","可麗餅":"Crêpes","甜點店":"Pastry shop","生蠔白酒":"Oysters & white wine","麵包店三明治":"Bakery sandwich","列日鬆餅":"Liège waffle","淡菜配薯條":"Mussels & fries","比利時啤酒館":"Belgian beer bar","巧克力店":"Chocolate shop","炸薯條":"Belgian fries","燉牛肉":"Beef stew","荷蘭鬆餅":"Dutch pancakes","鯡魚堡":"Herring sandwich","起司店試吃":"Cheese tasting","印尼飯":"Indonesian rice table","炸肉丸":"Bitterballen","運河咖啡":"Canal-side café"};
  const enS=t=>EN[t]?`<small class="en">${EN[t]}</small>`:"";
  const WC=["#f4a6b8","#f2b134","#8fd0c8","#a9c4f0","#ffd27a","#c9b3f2","#9ccf7a","#ffb38a"];
  function drawWheel(svg,items){const n=items.length,a=2*Math.PI/n;let h="";items.forEach((t,i)=>{const s=i*a-Math.PI/2,e=s+a,x1=100*Math.cos(s),y1=100*Math.sin(s),x2=100*Math.cos(e),y2=100*Math.sin(e),m=s+a/2,deg=m*180/Math.PI;h+=`<path d="M0 0L${x1.toFixed(2)} ${y1.toFixed(2)}A100 100 0 ${a>Math.PI?1:0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}Z" fill="${WC[i%WC.length]}" stroke="#2b2622" stroke-width="1.5"/><text transform="rotate(${deg.toFixed(1)}) translate(58 0) rotate(${deg>90&&deg<270?180:0})" text-anchor="middle" dominant-baseline="middle">${t.length>7?t.slice(0,7)+"…":t}</text>`});h+=`<circle r="100" fill="none" stroke="#2b2622" stroke-width="4"/><circle r="14" fill="#fff" stroke="#2b2622" stroke-width="3"/><circle r="5" fill="#e4572e"/>`;svg.innerHTML=h}
