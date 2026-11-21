@@ -437,7 +437,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 </div>
 
 <div class="gpanel" id="g-scratch" hidden>
-<p class="sub center" style="margin-top:0">用手指刮開銀色區域，看今天的小任務。</p>
+<p class="sub center" style="margin-top:0">用手指刮開銀色區域，看今天的搞笑任務。抽到就一定要做喔！</p>
 <div class="scratch"><div class="mission" id="mission"></div><canvas id="scv" aria-label="刮刮樂，用手指刮開"></canvas></div>
 <div class="stack-btns" style="margin-top:14px"><button class="btn main" id="newscratch">換一張</button><button class="btn" id="revealscratch">直接打開</button></div>
 </div>
@@ -759,10 +759,10 @@ document.addEventListener("click",e=>{
  $("bingo").addEventListener("click",e=>{const b=e.target.closest("[data-b]");if(!b)return;const i=+b.dataset.b,before=LINES.filter(l=>l.every(k=>bon.includes(k))).length;bon=bon.includes(i)?bon.filter(x=>x!=i):[...bon,i];const after=LINES.filter(l=>l.every(k=>bon.includes(k))).length;renderBingo(after>before)});
  $("bingoreset").addEventListener("click",()=>{bon=[];renderBingo(false)});
  /* scratch */
- const MS=["今天由老公提行李","幫對方拍一張網美照","用當地語言說一次謝謝","寄一張明信片給毛狗賓狗","今天晚餐老婆點菜","買一個當地小零食分著吃","選一首今天的主題曲","今天的咖啡老公請","找一個地方一起看日落","拍一張兩個人的醜照","說出今天最喜歡的瞬間","今天由老婆決定行程順序"];
+ const MS=["今天點咖啡要用法文，點錯也要喝完","模仿毛狗吐舌頭，拍一張合照","學賓狗的招牌臭臉自拍一張","今天走路要牽手超過 100 步，邊走邊數","今天說「我愛你」要用三種語言","老婆指定一個奇怪姿勢，老公照做拍網美照","找一個跟老公長得很像的雕像合照","今天每張照片都要比 YA，忘記就請吃冰","用 10 秒鐘跳一段跨年舞，要錄影","幫對方取一個當地名字，今天只能叫那個","去紀念品店找最醜的東西買回家","晚餐前互誇對方三個優點，不能重複","今天誰先喊冷，誰請熱可可","老公今天是專屬攝影師，至少拍 30 張","用比手畫腳跟路人問一次路","對著最美的風景大喊「我們來了！」","吃東西前先用很浮誇的表情說好好吃","今天的行李由猜拳輸的人推","找到一隻當地的狗狗或貓貓，跟牠打招呼","兩個人互換帽子或圍巾戴一整天"];
  const cv=$("scv"),cx=cv.getContext("2d");let cleared=false,down=false;
  function cover(){const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=Math.max(1,r.width*d);cv.height=Math.max(1,r.height*d);cx.setTransform(d,0,0,d,0,0);cx.globalCompositeOperation="source-over";const g=cx.createLinearGradient(0,0,r.width,r.height);g.addColorStop(0,"#c9c9c9");g.addColorStop(.5,"#eeeeee");g.addColorStop(1,"#b5b5b5");cx.fillStyle=g;cx.fillRect(0,0,r.width,r.height);cx.fillStyle="#7a7a7a";cx.font="bold 22px sans-serif";cx.textAlign="center";cx.fillText("刮這裡！",r.width/2,r.height/2+8);cv.style.opacity="1";cv.style.transition="";cleared=false}
- function newCard(){$("mission").textContent=MS[Math.floor(Math.random()*MS.length)];cover()}
+ function newCard(){$("mission").innerHTML=`<span><small style="display:block;font-size:15px;color:#e4572e;letter-spacing:.1em">中獎啦！今日任務</small>${MS[Math.floor(Math.random()*MS.length)]}</span>`;cover()}
  function scr(e){if(!down||cleared)return;const r=cv.getBoundingClientRect();cx.globalCompositeOperation="destination-out";cx.beginPath();cx.arc(e.clientX-r.left,e.clientY-r.top,22,0,7);cx.fill()}
  function check(){if(cleared)return;const d=cx.getImageData(0,0,cv.width,cv.height).data;let c=0,t=0;for(let i=3;i<d.length;i+=64){t++;if(d[i]==0)c++}if(c/t>.45)reveal()}
  function reveal(){cleared=true;cv.style.transition="opacity .4s";cv.style.opacity="0"}
