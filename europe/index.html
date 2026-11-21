@@ -363,6 +363,12 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 @media(max-width:600px){.token.tk0,.token.tk1{width:26px;height:40px}.acct b{font-size:19px}}
 
 /* itinerary monopoly */
+.live{text-align:center;margin:0 0 12px}
+.liverow{display:inline-flex;align-items:center;gap:8px;font-weight:700;background:#fff;padding:4px 12px;border-radius:16px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.dot{width:10px;height:10px;border-radius:50%;background:#bbb}
+.dot.on{background:#2ecc71;box-shadow:0 0 0 3px rgba(46,204,113,.25)}
+.live .acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
+.live a.btn{text-decoration:none}
 .planpick{text-align:center;margin:0 0 12px}
 .planpick p{margin:4px 0}
 .rc.prop{justify-content:flex-start;padding:0 0 4px;overflow:hidden}
@@ -417,6 +423,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <h2 class="center" id="dicetitle">跨年大富翁・雙人對戰</h2>
 <p class="sub center">開局各出 €100 當遊戲基金。輪流擲骰子，買下行程景點收過路費，還有罰錢、坐牢、搶對方的錢，最後結算。</p>
 <div class="whoami" id="whoami"></div>
+<div class="live" id="live"></div>
 <div class="planpick" id="planpick"></div>
 <div class="ring" id="ring">
 <div class="mid"><div class="turn" id="turn"></div><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button></div>
@@ -698,7 +705,7 @@ const CHANCES=[["前進 3 格！","move",3],["倒退 2 格……","move",-2],["�
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const NEW=(plan)=>({plan:plan||null,pos:[0,0],bal:[100,100],pot:0,own:{},jail:[0,0],card:[false,false],turn:0,over:false,seq:0});
 let G=(()=>{try{const g=JSON.parse(localStorage.getItem("ntrip-mono"));return g&&g.bal?Object.assign(NEW(),g):NEW()}catch(e){return NEW()}})();
-const save=()=>{try{localStorage.setItem("ntrip-mono",JSON.stringify(G))}catch(e){}};
+const save=()=>{try{localStorage.setItem("ntrip-mono",JSON.stringify(G))}catch(e){}if(typeof push=="function"&&!save.quiet)push()};
 const eur=v=>`€${v}`;
 const spot=k=>STOPS[G.plan][+k.slice(1)];
 let pending=null;
@@ -719,11 +726,11 @@ function render(){
  $("turn").innerHTML=G.over?"遊戲結束":`輪到 <b style="color:${PL[G.turn].c}">${PL[G.turn].n}</b>`;
  save();gate();
 }
-function setPlan(id){if(G.plan&&G.plan!==id&&(G.seq||G.pot||G.bal[0]!=100||G.bal[1]!=100)){if(!confirmSwitch(id))return}G=NEW(id);G.seq=Date.now()%100000;pending=null;busy=false;buildRing();render();msg(`路線定好了！棋盤變成「${PLANS.find(x=>x.id==id).name}」的行程。<br>老婆、老公各出 €100，老婆先擲！`)}
+function setPlan(id){if(G.plan&&G.plan!==id&&(G.seq||G.pot||G.bal[0]!=100||G.bal[1]!=100)){if(!confirmSwitch(id))return}{const sq=(G.seq||0)+1;G=NEW(id);G.seq=sq;}pending=null;busy=false;buildRing();render();msg(`路線定好了！棋盤變成「${PLANS.find(x=>x.id==id).name}」的行程。<br>老婆、老公各出 €100，老婆先擲！`)}
 let switchTo=null;function confirmSwitch(id){if(switchTo===id){switchTo=null;return true}switchTo=id;msg(`換路線會重新開局，目前戰況會清掉。<div class="acts"><button class="btn main" data-setplan="${id}">確定換成方案 ${id.toUpperCase()}</button></div>`);return false}
 function pay(from,to,v){v=Math.max(0,v);if(from!=="pot"){G.bal[from]-=v}else{v=Math.min(v,G.pot);G.pot-=v}if(to==="pot")G.pot+=v;else if(to!=null)G.bal[to]+=v;return v}
 function settleText(){const s=(n,d)=>`${n}${d>=0?"賺":"賠"} ${eur(Math.abs(d))}`;return `結算：${s("老婆",G.bal[0]-100)}、${s("老公",G.bal[1]-100)}，旅費罐 ${eur(G.pot)} 一起拿去吃甜點。`}
-function checkOver(){const b=G.bal.findIndex(x=>x<0);if(b>=0){G.over=true;render();msg(`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}`);if(typeof celebrate=="function")celebrate("c");return true}return false}
+function checkOver(){const b=G.bal.findIndex(x=>x<0);if(b>=0){G.over=true;G.seq=(G.seq||0)+1;G.last=`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}`;render();msg(`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}`);if(typeof celebrate=="function")celebrate("c");return true}return false}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function die(el,n){el.innerHTML=[...Array(9)].map((_,i)=>`<i style="visibility:${PIPS[n].includes(i)?"visible":"hidden"}"></i>`).join("")}
 die($("d1"),5);die($("d2"),2);
@@ -739,9 +746,9 @@ const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g
 const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
 function renderWho(){$("whoami").innerHTML=`這支手機是：${[["0","老婆"],["1","老公"],["both","兩人一起用"]].map(([v,l])=>`<button class="chip" data-me="${v}" aria-pressed="${ME==v}">${l}</button>`).join("")}`}
 renderWho();
-function shareRow(){if(ME==="both"||G.over||!G.plan)return "";const nx=PL[G.turn].n,url=SHARE_BASE+"#dice="+enc(G),t=`輪到你擲骰子了！跨年大富翁戰況：老婆 €${G.bal[0]}、老公 €${G.bal[1]}，點這裡接著玩 ${url}`;return `<div class="acts"><a class="btn main" href="https://line.me/R/share?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">把棋局傳給${nx}（LINE）</a><button class="btn" data-copylink="${url}">複製棋局連結</button></div>`}
+function shareRow(){if(ROOM||ME==="both"||G.over||!G.plan)return "";const nx=PL[G.turn].n,url=SHARE_BASE+"#dice="+enc(G),t=`輪到你擲骰子了！跨年大富翁戰況：老婆 €${G.bal[0]}、老公 €${G.bal[1]}，點這裡接著玩 ${url}`;return `<div class="acts"><a class="btn main" href="https://line.me/R/share?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">把棋局傳給${nx}（LINE）</a><button class="btn" data-copylink="${url}">複製棋局連結</button></div>`}
 function gate(showWait){const rb=$("rollbtn");if(!rb)return;const mine=ME==="both"||+ME===G.turn;rb.disabled=!mine||G.over||!G.plan;rb.style.opacity=rb.disabled?.45:1;if(showWait&&G.plan&&!mine&&!G.over&&!pending)msg(`輪到 <b>${PL[G.turn].n}</b>，等對方擲完把棋局傳回來。${shareRow()}`)}
-function endTurn(extra=""){if(checkOver())return;G.turn=1-G.turn;G.seq=(G.seq||0)+1;render();busy=false;msg((extra?extra+"<br>":"")+`<small>換 ${PL[G.turn].n} 擲骰子</small>`+shareRow())}
+function endTurn(extra=""){G.last=extra||"";if(checkOver())return;G.turn=1-G.turn;G.seq=(G.seq||0)+1;render();busy=false;msg((extra?extra+"<br>":"")+`<small>換 ${PL[G.turn].n} 擲骰子</small>`+shareRow())}
 function loadShared(s){try{const inc=dec(s);if(!inc||!inc.bal)return;if(G.plan===inc.plan&&(inc.seq||0)<(G.seq||0)&&!G.over){msg("這是比較舊的棋局連結，已保留手機上較新的戰況。");return}G=Object.assign(NEW(),inc);pending=null;busy=false;roll.bailAsked=false;save();setTimeout(()=>{buildRing();render();gate(true);msg(`收到最新棋局！老婆 €${G.bal[0]}、老公 €${G.bal[1]}、旅費罐 €${G.pot}<br>輪到 <b>${PL[G.turn].n}</b>`+(ME!=="both"&&+ME!==G.turn?"，等對方擲完傳回來。":"，換你擲骰子！"))},60)}catch(e){msg("棋局連結壞掉了，請對方重傳一次。")}}
 async function land(pi){
  const o=1-pi,me=PL[pi].n,t=CELLS[G.pos[pi]];
@@ -769,7 +776,7 @@ async function roll(){
  busy=true;const pi=G.turn,o=1-pi;
  if(G.jail[pi]&&G.bal[pi]>=5&&!roll.bailAsked){roll.bailAsked=true;busy=false;return ask(`${PL[pi].n}在坐牢中。要付 ${eur(5)} 保釋金給${PL[o].n}直接出獄，還是擲骰子拼對子？`,[[`付 ${eur(5)} 保釋`,()=>{pay(pi,o,5);G.jail[pi]=0;render();roll.bailAsked=false;roll()}],["拼對子",()=>{roll.bailAsked="go";roll()}]])}
  roll.bailAsked=false;
- const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6),n=a+b;
+ const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6),n=a+b;G.dice=[a,b];
  for(const [el,v] of [[$("d1"),a],[$("d2"),b]]){el.classList.remove("roll");void el.offsetWidth;el.classList.add("roll");die(el,v)}
  await wait(650);
  if(G.jail[pi]){if(a==b){G.jail[pi]=0;msg(`擲出對子！${PL[pi].n}出獄！`);await wait(700)}else if(G.jail[pi]>=2){G.jail[pi]=0;msg(`關滿了放出來，但要學賓狗喵喵叫三聲。`);await wait(1100)}else{G.jail[pi]++;return endTurn(`沒擲出對子，${PL[pi].n}繼續坐牢！懲罰：${pick(["學毛狗吐舌頭 5 秒","說出對方三個優點","唱一句跨年歌"])}`)}}
@@ -784,10 +791,28 @@ document.addEventListener("click",e=>{
  if(e.target.closest("[data-chg]")){$("planpick").innerHTML=`<div class="chips" style="justify-content:center">${PLANS.map(x=>`<button class="chip" data-setplan="${x.id}" aria-pressed="${x.id==G.plan}">方案 ${x.k}</button>`).join("")}</div><p class="hint">換路線會重新開局。</p>`;return}
  const m=e.target.closest("[data-me]");if(m){ME=m.dataset.me;try{localStorage.setItem(ME_KEY,ME)}catch(x){}renderWho();gate(true);return}
  const cl=e.target.closest("[data-copylink]");if(cl){navigator.clipboard.writeText(cl.dataset.copylink).then(()=>{cl.textContent="已複製！"}).catch(()=>{cl.textContent="請手動複製網址"});return}
- if(e.target.closest("#newgame")){const p=G.plan;G=NEW(p);G.seq=Date.now()%100000;pending=null;busy=false;roll.bailAsked=false;buildRing();render();msg(p?"新的一局！老婆、老公各出 €100。<br>老婆先擲！":"先選定路線再開局。");return}
+ if(e.target.closest("#newgame")){const p=G.plan,sq=(G.seq||0)+1;G=NEW(p);G.seq=sq;pending=null;busy=false;roll.bailAsked=false;buildRing();render();msg(p?"新的一局！老婆、老公各出 €100。<br>老婆先擲！":"先選定路線再開局。");return}
  if(e.target.closest("#settle")){msg(`<b>目前戰況</b><br>${settleText()}`);return}
 });
 buildRing();
+
+
+/* ---------- live room via Firebase Realtime Database (REST + EventSource) ---------- */
+const DB="https://new-year-trip-default-rtdb.asia-southeast1.firebasedatabase.app";
+let ROOM=(()=>{try{return localStorage.getItem("ntrip-room")||""}catch(e){return ""}})();
+let ES=null,pushT=null,liveOK=false;
+const roomURL=()=>`${DB}/games/${ROOM}.json`;
+function setRoom(id){ROOM=id||"";try{ROOM?localStorage.setItem("ntrip-room",ROOM):localStorage.removeItem("ntrip-room")}catch(e){}}
+function push(){if(!ROOM)return;clearTimeout(pushT);pushT=setTimeout(()=>{fetch(roomURL(),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(G)}).then(r=>{liveOK=r.ok;renderLive()}).catch(()=>{liveOK=false;renderLive()})},150)}
+function applyRemote(inc){if(!inc||!inc.bal)return;if((inc.seq||0)<=(G.seq||0)&&inc.plan===G.plan)return;const planChanged=inc.plan!==G.plan;G=Object.assign(NEW(),inc);pending=null;busy=false;roll.bailAsked=false;save.quiet=true;save();if(planChanged)buildRing();if(G.dice){die($("d1"),G.dice[0]);die($("d2"),G.dice[1])}render();save.quiet=false;if(G.over)msg(G.last||"遊戲結束");else msg((G.last?G.last+"<br>":"")+`<small>輪到 ${PL[G.turn].n}</small>`)}
+function listen(){if(ES){ES.close();ES=null}if(!ROOM||!window.EventSource)return;try{ES=new EventSource(roomURL());ES.addEventListener("put",e=>{liveOK=true;renderLive();try{const d=JSON.parse(e.data);if(d.path==="/"&&d.data)applyRemote(d.data);else fetch(roomURL()).then(r=>r.json()).then(applyRemote)}catch(x){}});ES.addEventListener("patch",()=>{fetch(roomURL()).then(r=>r.json()).then(applyRemote)});ES.onerror=()=>{liveOK=false;renderLive()};ES.onopen=()=>{liveOK=true;renderLive()}}catch(e){liveOK=false;renderLive()}}
+function newRoomId(){const c="abcdefghjkmnpqrstuvwxyz23456789";let s="";const a=new Uint32Array(14);(window.crypto||{getRandomValues:x=>x.map(()=>Math.random()*4e9)}).getRandomValues(a);a.forEach(v=>s+=c[v%c.length]);return s}
+function renderLive(){const el=$("live");if(!el)return;if(!ROOM){el.innerHTML=`<button class="btn main" id="mkroom">開即時對戰房間（兩支手機同步）</button>`;return}const url=SHARE_BASE+"#room="+ROOM,t=`來玩跨年大富翁！點這裡進房間，我們兩支手機即時同步：${url}`;el.innerHTML=`<div class="liverow"><span class="dot ${liveOK?"on":""}"></span>${liveOK?"即時連線中":"連線中…"}・房間 ${ROOM.slice(0,4).toUpperCase()}</div><div class="acts"><a class="btn" href="https://line.me/R/share?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">用 LINE 邀請對方進房間</a><button class="btn" data-copylink="${url}">複製房間連結</button><button class="linkbtn" id="leaveroom">離開房間</button></div>`}
+function joinRoom(id){setRoom(id);liveOK=false;renderLive();fetch(roomURL()).then(r=>r.json()).then(d=>{if(d&&d.bal){G.seq=-1;applyRemote(d)}else push()}).catch(()=>{});listen()}
+document.addEventListener("click",e=>{
+ if(e.target.closest("#mkroom")){setRoom(newRoomId());if(!G.seq)G.seq=1;save();push();listen();renderLive();msg("房間開好了！用 LINE 把房間連結傳給對方，之後兩支手機會自動同步。");return}
+ if(e.target.closest("#leaveroom")){if(ES)ES.close();ES=null;setRoom("");renderLive();msg("已離開房間，回到單機模式。");return}
+});
 
 /* ---------- title deed ---------- */
 function show(id,why){
@@ -924,11 +949,13 @@ document.addEventListener("click",e=>{
 
 function route(){
  const hsh=location.hash.slice(1),m=hsh.match(/^plan-([abcd])$/);
+ const rm=hsh.match(/^room=([a-z0-9]{6,32})$/);if(rm){joinRoom(rm[1]);view("dice");try{history.replaceState(null,"","#dice")}catch(e){}return}
  const dm=hsh.match(/^dice=(.+)$/);if(dm){loadShared(dm[1]);view("dice");try{history.replaceState(null,"","#dice")}catch(e){}return}
  if(m){if(m[1]!=cur)show(m[1],"");else view("plan");return}
  if(["routes","dice","quiz","fb","games"].includes(hsh)){go(hsh,false);return}
  view("start");
 }
+if(ROOM){listen();renderLive();fetch(roomURL()).then(r=>r.json()).then(applyRemote).catch(()=>{})}else renderLive();
 route();
 window.addEventListener("hashchange",route);
 }
