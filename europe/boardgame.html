@@ -306,6 +306,25 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .rc.ev-rest{background:#d6f0c8}
 .rc.lit{outline:3px solid #e4572e;outline-offset:-3px}
 @media(max-width:600px){.ring{grid-template-rows:repeat(5,minmax(60px,auto))!important;gap:4px!important}.rc{font-size:10.5px;padding:3px 2px}.rc .pin{width:24px;height:24px;font-size:14px}.rc.ev b{font-size:13px}.mid{padding:6px}.mid p{font-size:13px}.die{width:44px;height:44px}}
+
+/* two-player bank */
+.turn{font-size:15px;font-weight:700}
+.bank{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px auto 0;max-width:620px}
+.acct{background:#fff;border-radius:10px;padding:8px 6px;text-align:center;box-shadow:0 3px 8px rgba(0,0,0,.12);border-top:6px solid var(--c,#999)}
+.acct span{display:block;font-size:14px;font-weight:700}
+.acct b{display:block;font-size:24px;font-family:ui-monospace,Menlo,monospace}
+.acct small{font-size:12px;color:#e4572e;font-weight:700}
+.acct.now{outline:3px solid var(--c);outline-offset:2px}
+.acct.pot{--c:#f2b134}
+.evt{margin:12px auto 0;max-width:620px;background:#fff8b8;padding:12px 14px;border-radius:8px;box-shadow:0 3px 8px rgba(0,0,0,.12);font-size:16px;line-height:1.55;text-align:center;min-height:56px}
+.evt .acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+.evt .acts .btn{min-height:44px;font-size:16px;flex:1 1 130px}
+.linkbtn{display:block;margin:6px auto 0;background:none;border:0;color:#4a78c2;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;min-height:32px}
+.rc{position:relative}
+.rc .own{position:absolute;right:4px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+.rc .own[style*="transparent"]{display:none}
+.token.tk0,.token.tk1{width:34px;height:52px}
+@media(max-width:600px){.token.tk0,.token.tk1{width:26px;height:40px}.acct b{font-size:19px}}
 </style>
 </head>
 <body>
@@ -347,12 +366,15 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 
 <section class="view" id="v-dice">
 <div class="narrow">
-<h2 class="center">擲骰子</h2>
-<p class="sub center">大富翁規則：停到方案格就走那條路線。經過起點領旅費點數，途中有罰錢任務、坐牢、機會、命運！<br><small>旅費點數存在這支手機上，500 點可以跟對方換一個小願望。</small></p>
+<h2 class="center">跨年大富翁・雙人對戰</h2>
+<p class="sub center">開局各出 €100 當遊戲基金。輪流擲骰子：買下方案收過路費、罰錢、坐牢、搶對方的錢，最後結算。</p>
 <div class="ring" id="ring">
-<div class="mid"><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button><p class="pts" id="pts"></p><p id="rollmsg" aria-live="polite">從起點出發，停到方案格就決定走那條！</p></div>
+<div class="mid"><div class="turn" id="turn"></div><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button></div>
 </div>
-<div class="pets" data-dog="擲大一點！汪！" data-cat="本喵押 C。"></div>
+<div class="bank" id="bank"></div>
+<div class="evt" id="rollmsg" aria-live="polite"></div>
+<div class="stack-btns" style="margin-top:12px"><button class="btn" id="settle">結算一下</button><button class="btn" id="newgame">重新開局（各出 €100）</button></div>
+<div class="pets" data-dog="老公加油！搶光她的錢！" data-cat="本喵只收現金。"></div>
 </div>
 </section>
 
@@ -608,58 +630,84 @@ async function walkTo(id){
 }
 window.addEventListener("resize",()=>{});
 
-/* ---------- dice ring (monopoly board) ---------- */
+/* ---------- dice ring (two-player monopoly with real game fund) ---------- */
 const RING=[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[3,0],[2,0],[1,0]];
 const CELLS=["go","a","fine","b","jail","c","chance","d","rest","a","fate","b","tojail","c","tax","d"];
-const EVT={go:["起點","GO"],fine:["罰錢","FINE"],jail:["坐牢","JAIL"],chance:["機會","?"],rest:["休息站","FREE"],fate:["命運","!"],tojail:["去坐牢","GO TO JAIL"],tax:["觀光稅","TAX"]};
-const FINES=["罰錢任務：用三種語言說「我好冷」","罰錢任務：幫對方拍一張他指定姿勢的照片","罰錢任務：學企鵝走路 10 步","罰錢任務：對著鏡頭唱一句跨年歌","罰錢任務：今天下一杯飲料你去點","罰錢任務：模仿賓狗的臭臉 5 秒","罰錢任務：幫對方背包包 10 分鐘","罰錢任務：用超浮誇的語氣誇對方今天的穿搭"];
-const TAXES=["觀光稅任務：跟一個雕像做一樣的姿勢合照","觀光稅任務：用當地語言跟店員說謝謝","觀光稅任務：買一張明信片寄給毛狗賓狗","觀光稅任務：找一個路人幫你們拍合照","觀光稅任務：在街上跳 5 秒的勝利舞","觀光稅任務：嚐一口當地最奇怪的零食"];
-const CHANCES=[["機會：老公親老婆一下，才能繼續",0],["機會：前進 3 格！",3],["機會：倒退 2 格……",-2],["機會：獲得出獄卡一張，下次坐牢直接出來",0,"card"],["機會：前往最近的方案格！",0,"plan"]];
-const FATES=["命運：被大鵝追！快逃 10 步","命運：一群鴿子盯上你了，原地轉一圈甩開牠們","命運：遇到羊群，對牠們學羊叫三聲","命運：撿到一顆雪球，偷偷丟向對方","命運：被海鷗搶走薯條（假裝的），演一段崩潰","命運：馴鹿擋路，用馴鹿的姿勢走 5 步","命運：路邊的貓不理你，學賓狗的臭臉回敬牠","命運：被風吹走帽子，追著跑一小段","命運：遇到街頭藝人，跟著音樂扭 5 秒","命運：被北極熊（雕像）嚇到，假裝尖叫一聲"];
-const RESTS=["休息站：互相按摩肩膀一分鐘","休息站：一起喝一口熱飲再出發","休息站：給對方一個擁抱"];
+const EVT={go:["起點","GO"],fine:["罰錢","FINE"],jail:["坐牢","JAIL"],chance:["機會","?"],rest:["休息站","拿走罐子"],fate:["命運","!"],tojail:["去坐牢","GO TO JAIL"],tax:["觀光稅","TAX"]};
+const PL=[{n:"老婆",c:"#ff6b5b",vb:"4 0 28 52"},{n:"老公",c:"#3a6fd8",vb:"28 0 28 52"}];
+const PRICE=10,RENT=4;
+const FINES=["用三種語言說「我好冷」","幫對方拍一張他指定姿勢的照片","學企鵝走路 10 步","對著鏡頭唱一句跨年歌","模仿賓狗的臭臉 5 秒","用超浮誇的語氣誇對方今天的穿搭"];
+const TAXES=["跟一個雕像擺一樣的姿勢合照","用當地語言跟店員說謝謝","在街上跳 5 秒的勝利舞","嚐一口當地最奇怪的零食","找一個路人幫你們拍合照"];
+const FATES=[["被大鵝追！逃跑時掉了 €3","pot",-3],["撿到一顆雪球丟中對方，對方賠你 €3","opp",3],["遇到羊群學羊叫，路人給你 €2 小費（從罐子拿）","potget",2],["被海鷗搶走薯條，崩潰付 €2 進罐子","pot",-2],["馴鹿擋路，用馴鹿的姿勢走 5 步","none",0],["路邊的貓不理你，學賓狗臭臉回敬牠","none",0],["被風吹走帽子，對方幫你追回來，付他 €2","opp",-2],["街頭藝人表演，跟著扭 5 秒，打賞 €1 進罐子","pot",-1]];
+const CHANCES=[["前進 3 格！","move",3],["倒退 2 格……","move",-2],["獲得出獄卡一張","card",0],["前往最近的方案格","plan",0],["向對方收 €5","opp",5],["給對方 €3 當小費","opp",-3],["親對方一下才能繼續","none",0]];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-let rpos=0,inJail=0,freeCard=false,pts=(()=>{try{return +localStorage.getItem("ntrip-pts")||0}catch(e){return 0}})();
-function addPts(v){pts+=v;try{localStorage.setItem("ntrip-pts",pts)}catch(e){}const el=$("pts");if(el){el.innerHTML=`旅費點數 <b>${f(pts)}</b> 點`;el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}
-addPts(0);
-const ringCell=(t,i)=>{const [r,c]=RING[i];const at=`grid-area:${r+1}/${c+1}`;if(EVT[t]){return `<div class="rc ev ev-${t}" id="rc${i}" style="${at}"><b>${EVT[t][0]}</b><small>${EVT[t][1]}</small></div>`}const p=PLANS.find(x=>x.id==t);return `<div class="rc" id="rc${i}" style="${at};--k:${TK[t]}"><span class="pin">${p.k}</span>${p.name.split("＋")[0]}${t=="a"?"":"＋"+p.name.split("＋")[1].replace(/ /g,"")}</div>`};
-$("ring").insertAdjacentHTML("afterbegin",CELLS.map(ringCell).join("")+`<div class="token" id="rtoken">${COUPLE}</div>`);
-function rplace(i){const c=$("rc"+i),tk=$("rtoken");tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`;document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));c.classList.add("lit")}
-const msg=(h)=>{$("rollmsg").innerHTML=h};
-function resetRing(){setTimeout(()=>rplace(rpos),30);if(!inJail)msg("從起點出發，停到方案格就決定走那條！<br>小心罰錢和坐牢。")}
+const NEW=()=>({pos:[0,0],bal:[100,100],pot:0,own:{a:null,b:null,c:null,d:null},jail:[0,0],card:[false,false],turn:0,over:false});
+let G=(()=>{try{return JSON.parse(localStorage.getItem("ntrip-mono"))||NEW()}catch(e){return NEW()}})();
+const save=()=>{try{localStorage.setItem("ntrip-mono",JSON.stringify(G))}catch(e){}};
+const eur=v=>`€${v}`;
+const ringCell=(t,i)=>{const [r,c]=RING[i];const at=`grid-area:${r+1}/${c+1}`;if(EVT[t])return `<div class="rc ev ev-${t}" id="rc${i}" style="${at}"><b>${EVT[t][0]}</b><small>${EVT[t][1]}</small></div>`;const p=PLANS.find(x=>x.id==t);return `<div class="rc" id="rc${i}" style="${at};--k:${TK[t]}"><span class="pin">${p.k}</span>${p.name.split("＋")[0]}${t=="a"?"":"＋"+p.name.split("＋")[1].replace(/ /g,"")}<i class="own" data-own="${t}"></i></div>`};
+$("ring").insertAdjacentHTML("afterbegin",CELLS.map(ringCell).join("")+PL.map((p,i)=>`<div class="token tk${i}" id="tk${i}"><svg viewBox="${p.vb}" aria-hidden="true">${COUPLE.replace(/^<svg[^>]*>/,"").replace(/<\/svg>$/,"")}</svg></div>`).join(""));
+function place(pi){const c=$("rc"+G.pos[pi]),tk=$("tk"+pi),off=(pi?1:-1)*(c.offsetWidth*.18);tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2+off}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`}
+function lit(i){document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));$("rc"+i).classList.add("lit")}
+function render(){
+ [0,1].forEach(place);
+ document.querySelectorAll(".own").forEach(o=>{const w=G.own[o.dataset.own];o.style.background=w==null?"transparent":PL[w].c;o.title=w==null?"":PL[w].n+"的地"});
+ $("bank").innerHTML=PL.map((p,i)=>`<div class="acct ${G.turn==i&&!G.over?"now":""}" style="--c:${p.c}"><span>${p.n}</span><b>${eur(G.bal[i])}</b>${G.jail[i]?"<small>坐牢中</small>":G.card[i]?"<small>有出獄卡</small>":""}</div>`).join("")+`<div class="acct pot"><span>旅費罐</span><b>${eur(G.pot)}</b></div>`;
+ $("turn").innerHTML=G.over?"遊戲結束":`輪到 <b style="color:${PL[G.turn].c}">${PL[G.turn].n}</b>`;
+ save();
+}
+const msg=h=>{$("rollmsg").innerHTML=h};
+function pay(from,to,v){/* from/to: 0,1 players, "pot" */v=Math.max(0,v);if(from!=="pot"){G.bal[from]-=v}else{v=Math.min(v,G.pot);G.pot-=v}if(to==="pot")G.pot+=v;else if(to!=null)G.bal[to]+=v;return v}
+function checkOver(){const b=G.bal.findIndex(x=>x<0);if(b>=0){G.over=true;render();msg(`<b>${PL[b].n}破產了！</b>${PL[1-b].n}獲勝 🏆`.replace(" 🏆","")+`<br>${settleText()}`);if(typeof celebrate=="function")celebrate("c");return true}return false}
+function settleText(){const d0=G.bal[0]-100,d1=G.bal[1]-100;const s=(n,d)=>`${n}${d>=0?"賺":"賠"} ${eur(Math.abs(d))}`;return `結算：${s("老婆",d0)}、${s("老公",d1)}，旅費罐 ${eur(G.pot)} 一起拿去吃甜點。`}
+function endTurn(extra=""){if(checkOver())return;G.turn=1-G.turn;render();busy=false;if(extra)msg(extra+`<br><small>換 ${PL[G.turn].n} 擲骰子</small>`)}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function die(el,n){el.innerHTML=[...Array(9)].map((_,i)=>`<i style="visibility:${PIPS[n].includes(i)?"visible":"hidden"}"></i>`).join("")}
 die($("d1"),5);die($("d2"),2);
-async function walk(steps){const tk=$("rtoken"),dir=steps<0?-1:1;for(let k=0;k<Math.abs(steps);k++){rpos=(rpos+dir+16)%16;tk.classList.remove("hop");void tk.offsetWidth;tk.classList.add("hop");rplace(rpos);if(dir>0&&rpos==0&&k<Math.abs(steps)-1){addPts(100);msg("經過起點！旅費點數 +100")}await wait(260)}}
-async function land(n){
- const t=CELLS[rpos];
- if(PLANS.some(p=>p.id==t)){msg(`停在方案 ${t.toUpperCase()}！`);await wait(700);busy=false;show(t,`骰到 ${n} 點，停在方案 ${t.toUpperCase()}`);return}
- if(t=="go"){addPts(300);msg("<b>剛好停在起點！旅費點數 +300</b><br>再擲一次")}
- else if(t=="fine"){msg(`<b>${pick(FINES)}</b><br>做完再擲一次`)}
- else if(t=="tax"){msg(`<b>${pick(TAXES)}</b><br>做完再擲一次`)}
- else if(t=="jail"){msg("只是來探監，沒事！再擲一次")}
- else if(t=="rest"){msg(`<b>${pick(RESTS)}</b><br>休息完再擲一次`)}
- else if(t=="fate"){msg(`<b>${pick(FATES)}</b><br>演完再擲一次`)}
- else if(t=="chance"){const c=pick(CHANCES);msg(`<b>${c[0]}</b>`);await wait(1100);
-  if(c[2]=="card"){freeCard=true;msg("<b>收到出獄卡！</b><br>再擲一次")}
-  else if(c[2]=="plan"){let s=0;do{s++}while(!PLANS.some(p=>p.id==CELLS[(rpos+s)%16]));await walk(s);return land(n)}
-  else if(c[1]){await walk(c[1]);return land(n)}
-  else msg(`<b>${c[0]}</b><br>做完再擲一次`)}
- else if(t=="tojail"){msg("<b>去坐牢！</b>");await wait(700);rpos=4;rplace(4);
-  if(freeCard){freeCard=false;msg("<b>使用出獄卡，馬上出獄！</b><br>再擲一次")}
-  else{inJail=1;msg("<b>坐牢中！</b>要擲出一樣的點數才能出獄。<br>沒擲出來的話要接受懲罰")}}
- busy=false;
+function resetRing(){setTimeout(()=>{render();if(!$("rollmsg").innerHTML)msg(`開局：老婆、老公各出 €100。<br>輪到 ${PL[G.turn].n} 先擲！`)},30)}
+async function walk(pi,steps){const tk=$("tk"+pi),dir=steps<0?-1:1;for(let k=0;k<Math.abs(steps);k++){G.pos[pi]=(G.pos[pi]+dir+16)%16;tk.classList.remove("hop");void tk.offsetWidth;tk.classList.add("hop");place(pi);lit(G.pos[pi]);await wait(250)}}
+let pending=null;
+function ask(html,opts){msg(html+`<div class="acts">${opts.map((o,i)=>`<button class="btn ${i?"":"main"}" data-act="${i}">${o[0]}</button>`).join("")}</div>`);pending=opts.map(o=>o[1])}
+async function land(pi){
+ const o=1-pi,me=PL[pi].n,t=CELLS[G.pos[pi]];
+ if(PLANS.some(p=>p.id==t)){const p=PLANS.find(x=>x.id==t),w=G.own[t],view=`<button class="linkbtn" data-p="${t}">看方案 ${p.k} 地契</button>`;
+  if(w==null){if(G.bal[pi]>=PRICE)return ask(`停在方案 ${p.k}：${p.name}<br>要花 ${eur(PRICE)} 買下嗎？之後對方停到要付你 ${eur(RENT)} 過路費。${view}`,[[`買下 ${eur(PRICE)}`,()=>{pay(pi,"pot",PRICE);G.own[t]=pi;endTurn(`${me}買下方案 ${p.k}！錢進旅費罐。`)}],["不買",()=>endTurn(`${me}路過方案 ${p.k}。`)]]);return endTurn(`停在方案 ${p.k}，但錢不夠買。${view}`)}
+  if(w==pi)return endTurn(`回到自己的方案 ${p.k}，休息一下。${view}`);
+  pay(pi,w,RENT);return endTurn(`停在${PL[w].n}的方案 ${p.k}！付過路費 ${eur(RENT)} 給${PL[w].n}。`)}
+ if(t=="go"){const v=pay("pot",pi,5);return endTurn(`剛好停在起點！從旅費罐領 ${eur(v)}。`)}
+ if(t=="fine"){const task=pick(FINES);return ask(`<b>罰錢！</b>二選一：做任務「${task}」，或付 ${eur(5)} 給${PL[o].n}。`,[["做任務",()=>endTurn(`${me}完成任務：${task}`)],[`付 ${eur(5)}`,()=>{pay(pi,o,5);endTurn(`${me}付 ${eur(5)} 給${PL[o].n}。`)}]])}
+ if(t=="tax"){const task=pick(TAXES);return ask(`<b>觀光稅！</b>二選一：做任務「${task}」，或付 ${eur(3)} 進旅費罐。`,[["做任務",()=>endTurn(`${me}完成任務：${task}`)],[`付 ${eur(3)}`,()=>{pay(pi,"pot",3);endTurn(`${me}繳了 ${eur(3)} 觀光稅。`)}]])}
+ if(t=="jail")return endTurn("只是來探監，沒事！");
+ if(t=="rest"){const v=pay("pot",pi,G.pot);return endTurn(v?`<b>休息站大獎！</b>${me}拿走旅費罐全部 ${eur(v)}！`:"休息站：罐子空空的，喝口水就好。")}
+ if(t=="fate"){const [tx,k,v]=pick(FATES);if(k=="pot")pay(pi,"pot",-v);else if(k=="opp"){v>0?pay(o,pi,v):pay(pi,o,-v)}else if(k=="potget")pay("pot",pi,v);return endTurn(`<b>命運：</b>${tx}`)}
+ if(t=="chance"){const [tx,k,v]=pick(CHANCES);msg(`<b>機會：</b>${tx}`);await wait(900);
+  if(k=="move"){await walk(pi,v);return land(pi)}
+  if(k=="plan"){let s=0;do{s++}while(!PLANS.some(p=>p.id==CELLS[(G.pos[pi]+s)%16]));await walk(pi,s);return land(pi)}
+  if(k=="card"){G.card[pi]=true;return endTurn(`<b>機會：</b>${me}拿到出獄卡！`)}
+  if(k=="opp"){v>0?pay(o,pi,v):pay(pi,o,-v);return endTurn(`<b>機會：</b>${tx}`)}
+  return endTurn(`<b>機會：</b>${tx}`)}
+ if(t=="tojail"){G.pos[pi]=4;place(pi);lit(4);if(G.card[pi]){G.card[pi]=false;return endTurn(`<b>去坐牢！</b>但${me}用掉出獄卡，沒事～`)}G.jail[pi]=1;return endTurn(`<b>去坐牢！</b>${me}下次要擲出一樣的點數，或付 ${eur(5)} 保釋金給${PL[o].n}。`)}
+ endTurn("");
 }
 async function roll(){
- if(busy)return;busy=true;
+ if(busy||pending)return;if(G.over){msg(`遊戲已結束。${settleText()}<br>按「重新開局」再玩一次。`);return}
+ busy=true;const pi=G.turn,o=1-pi;
+ if(G.jail[pi]&&G.bal[pi]>=5&&!roll.bailAsked){roll.bailAsked=true;busy=false;return ask(`${PL[pi].n}在坐牢中。要付 ${eur(5)} 保釋金給${PL[o].n}直接出獄，還是擲骰子拼對子？`,[[`付 ${eur(5)} 保釋`,()=>{pay(pi,o,5);G.jail[pi]=0;render();roll.bailAsked=false;roll()}],["拼對子",()=>{roll.bailAsked="go";roll()}]])}
+ roll.bailAsked=false;
  const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6),n=a+b;
  for(const [el,v] of [[$("d1"),a],[$("d2"),b]]){el.classList.remove("roll");void el.offsetWidth;el.classList.add("roll");die(el,v)}
- if(inJail){await wait(650);
-  if(a==b){inJail=0;msg(`擲出 ${a}、${b} 一樣的點數！<b>出獄！</b>`);await wait(800)}
-  else if(inJail>=2){inJail=0;msg(`<b>關滿了，放你出來</b>，但要學賓狗喵喵叫三聲`);await wait(1300)}
-  else{inJail++;msg(`<b>還在坐牢！</b>懲罰：${pick(["學毛狗吐舌頭 5 秒","說出對方三個優點","唱一句跨年歌","用法文說「我愛你」"])}<br>再擲一次試試`);busy=false;return}}
- else{msg(`骰到 ${n} 點！`);await wait(650)}
- await walk(n);await land(n);
+ await wait(650);
+ if(G.jail[pi]){if(a==b){G.jail[pi]=0;msg(`擲出對子！${PL[pi].n}出獄！`);await wait(700)}else if(G.jail[pi]>=2){G.jail[pi]=0;msg(`關滿了放出來，但要學賓狗喵喵叫三聲。`);await wait(1100)}else{G.jail[pi]++;return endTurn(`沒擲出對子，${PL[pi].n}繼續坐牢！懲罰：${pick(["學毛狗吐舌頭 5 秒","說出對方三個優點","唱一句跨年歌"])}`)}}
+ msg(`${PL[pi].n}骰到 ${n} 點！`);
+ const before=G.pos[pi];await walk(pi,n);
+ if(G.pos[pi]<before&&G.pos[pi]!=0){const v=pay("pot",pi,2);if(v)msg(`經過起點，從旅費罐領 ${eur(v)}`);await wait(500)}
+ render();await land(pi);
 }
+document.addEventListener("click",e=>{
+ const a=e.target.closest("[data-act]");if(a&&pending){const fn=pending[+a.dataset.act];pending=null;fn();return}
+ if(e.target.closest("#newgame")){G=NEW();pending=null;busy=false;roll.bailAsked=false;render();msg("新的一局！老婆、老公各出 €100。<br>老婆先擲！");return}
+ if(e.target.closest("#settle")){msg(`<b>目前戰況</b><br>${settleText()}`);return}
+});
 
 /* ---------- title deed ---------- */
 function show(id,why){
