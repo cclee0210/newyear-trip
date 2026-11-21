@@ -288,6 +288,10 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 @media(prefers-reduced-motion:reduce){.wheel{transition:none}.wres.win{animation:none}}
 
 /* monopoly ring 5x5 */
+.pts{margin:0;font-size:14px;background:#fff8b8;padding:2px 10px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.pts b{color:#e4572e;font-size:16px}
+.pts.bump{animation:winpop .5s ease}
+.ptsnote{font-size:12px;opacity:.75}
 .ring{grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:repeat(5,minmax(70px,auto))!important;max-width:620px}
 .mid{grid-area:2/2/5/5!important}
 .mid p{font-size:15px;line-height:1.5}
@@ -344,9 +348,9 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <section class="view" id="v-dice">
 <div class="narrow">
 <h2 class="center">擲骰子</h2>
-<p class="sub center">大富翁規則：停到方案格就走那條路線。途中有罰錢、坐牢、機會、命運！</p>
+<p class="sub center">大富翁規則：停到方案格就走那條路線。經過起點領旅費點數，途中有罰錢任務、坐牢、機會、命運！<br><small>旅費點數存在這支手機上，500 點可以跟對方換一個小願望。</small></p>
 <div class="ring" id="ring">
-<div class="mid"><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button><p id="rollmsg" aria-live="polite">從起點出發，停到方案格就決定走那條！</p></div>
+<div class="mid"><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button><p class="pts" id="pts"></p><p id="rollmsg" aria-live="polite">從起點出發，停到方案格就決定走那條！</p></div>
 </div>
 <div class="pets" data-dog="擲大一點！汪！" data-cat="本喵押 C。"></div>
 </div>
@@ -608,13 +612,15 @@ window.addEventListener("resize",()=>{});
 const RING=[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[3,0],[2,0],[1,0]];
 const CELLS=["go","a","fine","b","jail","c","chance","d","rest","a","fate","b","tojail","c","tax","d"];
 const EVT={go:["起點","GO"],fine:["罰錢","FINE"],jail:["坐牢","JAIL"],chance:["機會","?"],rest:["休息站","FREE"],fate:["命運","!"],tojail:["去坐牢","GO TO JAIL"],tax:["觀光稅","TAX"]};
-const FINES=["罰錢！請對方喝一杯熱可可","罰錢！今晚的甜點你出","超速罰單：幫對方背包包 1 小時","罰錢！下一次搭車的車票你買","亂停車罰單：幫對方拍 10 張美照"];
-const TAXES=["觀光稅：買一張明信片寄給毛狗賓狗","觀光稅：今天的咖啡錢你出","觀光稅：請對方吃一個當地小點心"];
+const FINES=["罰錢任務：用三種語言說「我好冷」","罰錢任務：幫對方拍一張他指定姿勢的照片","罰錢任務：學企鵝走路 10 步","罰錢任務：對著鏡頭唱一句跨年歌","罰錢任務：今天下一杯飲料你去點","罰錢任務：模仿賓狗的臭臉 5 秒","罰錢任務：幫對方背包包 10 分鐘","罰錢任務：用超浮誇的語氣誇對方今天的穿搭"];
+const TAXES=["觀光稅任務：跟一個雕像做一樣的姿勢合照","觀光稅任務：用當地語言跟店員說謝謝","觀光稅任務：買一張明信片寄給毛狗賓狗","觀光稅任務：找一個路人幫你們拍合照","觀光稅任務：在街上跳 5 秒的勝利舞","觀光稅任務：嚐一口當地最奇怪的零食"];
 const CHANCES=[["機會：老公親老婆一下，才能繼續",0],["機會：前進 3 格！",3],["機會：倒退 2 格……",-2],["機會：獲得出獄卡一張，下次坐牢直接出來",0,"card"],["機會：前往最近的方案格！",0,"plan"]];
-const FATES=["命運：毛狗賓狗想你們了，今晚視訊一下","命運：撿到旅費 NT$500！今晚加菜","命運：雪下太大，休息一下再擲","命運：被鴿子攻擊！一起大笑 10 秒","命運：抽到隱藏美食，下一餐由你決定"];
+const FATES=["命運：被大鵝追！快逃 10 步","命運：一群鴿子盯上你了，原地轉一圈甩開牠們","命運：遇到羊群，對牠們學羊叫三聲","命運：撿到一顆雪球，偷偷丟向對方","命運：被海鷗搶走薯條（假裝的），演一段崩潰","命運：馴鹿擋路，用馴鹿的姿勢走 5 步","命運：路邊的貓不理你，學賓狗的臭臉回敬牠","命運：被風吹走帽子，追著跑一小段","命運：遇到街頭藝人，跟著音樂扭 5 秒","命運：被北極熊（雕像）嚇到，假裝尖叫一聲"];
 const RESTS=["休息站：互相按摩肩膀一分鐘","休息站：一起喝一口熱飲再出發","休息站：給對方一個擁抱"];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-let rpos=0,inJail=0,freeCard=false;
+let rpos=0,inJail=0,freeCard=false,pts=(()=>{try{return +localStorage.getItem("ntrip-pts")||0}catch(e){return 0}})();
+function addPts(v){pts+=v;try{localStorage.setItem("ntrip-pts",pts)}catch(e){}const el=$("pts");if(el){el.innerHTML=`旅費點數 <b>${f(pts)}</b> 點`;el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}
+addPts(0);
 const ringCell=(t,i)=>{const [r,c]=RING[i];const at=`grid-area:${r+1}/${c+1}`;if(EVT[t]){return `<div class="rc ev ev-${t}" id="rc${i}" style="${at}"><b>${EVT[t][0]}</b><small>${EVT[t][1]}</small></div>`}const p=PLANS.find(x=>x.id==t);return `<div class="rc" id="rc${i}" style="${at};--k:${TK[t]}"><span class="pin">${p.k}</span>${p.name.split("＋")[0]}${t=="a"?"":"＋"+p.name.split("＋")[1].replace(/ /g,"")}</div>`};
 $("ring").insertAdjacentHTML("afterbegin",CELLS.map(ringCell).join("")+`<div class="token" id="rtoken">${COUPLE}</div>`);
 function rplace(i){const c=$("rc"+i),tk=$("rtoken");tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`;document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));c.classList.add("lit")}
@@ -623,16 +629,16 @@ function resetRing(){setTimeout(()=>rplace(rpos),30);if(!inJail)msg("從起點�
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function die(el,n){el.innerHTML=[...Array(9)].map((_,i)=>`<i style="visibility:${PIPS[n].includes(i)?"visible":"hidden"}"></i>`).join("")}
 die($("d1"),5);die($("d2"),2);
-async function walk(steps){const tk=$("rtoken"),dir=steps<0?-1:1;for(let k=0;k<Math.abs(steps);k++){rpos=(rpos+dir+16)%16;tk.classList.remove("hop");void tk.offsetWidth;tk.classList.add("hop");rplace(rpos);if(dir>0&&rpos==0)msg("經過起點！老公發旅費 NT$2,000 💸".replace(" 💸",""));await wait(260)}}
+async function walk(steps){const tk=$("rtoken"),dir=steps<0?-1:1;for(let k=0;k<Math.abs(steps);k++){rpos=(rpos+dir+16)%16;tk.classList.remove("hop");void tk.offsetWidth;tk.classList.add("hop");rplace(rpos);if(dir>0&&rpos==0&&k<Math.abs(steps)-1){addPts(100);msg("經過起點！旅費點數 +100")}await wait(260)}}
 async function land(n){
  const t=CELLS[rpos];
  if(PLANS.some(p=>p.id==t)){msg(`停在方案 ${t.toUpperCase()}！`);await wait(700);busy=false;show(t,`骰到 ${n} 點，停在方案 ${t.toUpperCase()}`);return}
- if(t=="go"){msg("剛好停在起點！領 NT$2,000 旅費，再擲一次");}
- else if(t=="fine"){msg(`<b>${pick(FINES)}</b><br>付完再擲一次`)}
- else if(t=="tax"){msg(`<b>${pick(TAXES)}</b><br>繳完再擲一次`)}
+ if(t=="go"){addPts(300);msg("<b>剛好停在起點！旅費點數 +300</b><br>再擲一次")}
+ else if(t=="fine"){msg(`<b>${pick(FINES)}</b><br>做完再擲一次`)}
+ else if(t=="tax"){msg(`<b>${pick(TAXES)}</b><br>做完再擲一次`)}
  else if(t=="jail"){msg("只是來探監，沒事！再擲一次")}
  else if(t=="rest"){msg(`<b>${pick(RESTS)}</b><br>休息完再擲一次`)}
- else if(t=="fate"){msg(`<b>${pick(FATES)}</b><br>再擲一次`)}
+ else if(t=="fate"){msg(`<b>${pick(FATES)}</b><br>演完再擲一次`)}
  else if(t=="chance"){const c=pick(CHANCES);msg(`<b>${c[0]}</b>`);await wait(1100);
   if(c[2]=="card"){freeCard=true;msg("<b>收到出獄卡！</b><br>再擲一次")}
   else if(c[2]=="plan"){let s=0;do{s++}while(!PLANS.some(p=>p.id==CELLS[(rpos+s)%16]));await walk(s);return land(n)}
