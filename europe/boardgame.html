@@ -256,11 +256,37 @@ details.more .in{padding:4px 16px 16px;border-top:2px dashed var(--line)}
 #fbtext{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);resize:vertical}
 a.btn{text-decoration:none;display:flex;align-items:center;justify-content:center}
 #fbprev{white-space:pre-wrap;font:inherit;font-size:14px;margin:10px 0 0}
+
+/* mini games */
+.gtabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px}
+.gtab{min-height:44px;padding:6px 14px;border:2px solid var(--ink);border-radius:22px;background:#fff;color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.gtab[aria-selected=true]{background:var(--ink);color:#fff}
+.gtab:focus-visible,.bcell:focus-visible{outline:3px dashed var(--red);outline-offset:2px}
+.gpanel{background:var(--tile,#fff);padding:20px 16px 22px;box-shadow:0 6px 16px rgba(0,0,0,.12);border-radius:8px}
+.wheelbox{position:relative;width:min(300px,82vw);margin:0 auto}
+.wheel{display:block;width:100%;height:auto;transition:transform 4.2s cubic-bezier(.12,.75,.12,1);filter:drop-shadow(0 6px 10px rgba(0,0,0,.2))}
+.pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:28px solid var(--red);z-index:2;filter:drop-shadow(0 2px 1px rgba(0,0,0,.3))}
+.wheel text{font-size:10.5px;font-weight:700;fill:#2b2622;font-family:inherit}
+.wres{text-align:center;font-size:22px;font-weight:700;min-height:36px;margin:14px 0 10px}
+.wres.win{animation:winpop .5s ease}
+@keyframes winpop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.12)}100%{transform:none;opacity:1}}
+.addrow{display:flex;gap:8px;margin-top:12px}
+.addrow input{flex:1;min-height:44px;font:inherit;font-size:16px;padding:6px 10px;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink)}
+.chip .x{margin-left:6px;opacity:.6}
+.bingo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.bcell{position:relative;aspect-ratio:1;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:13px;font-weight:700;line-height:1.25;padding:4px;cursor:pointer;display:grid;place-items:center;text-align:center;overflow:hidden}
+.bcell.on{background:#fff3b0}
+.bcell.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:44px;color:rgba(228,87,46,.55);transform:rotate(-12deg);font-weight:900}
+.bcell.line{background:#ffd9cc}
+.scratch{position:relative;width:min(340px,86vw);height:200px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.18)}
+.mission{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:18px;font-size:22px;font-weight:700;line-height:1.4;background:repeating-linear-gradient(45deg,#fff8b8 0 14px,#fff3a0 14px 28px);color:#2b2622}
+.scratch canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.wheel{transition:none}.wres.win{animation:none}}
 </style>
 </head>
 <body>
 
-<div class="bar"><span class="brand" id="brand"></span><span style="display:flex;gap:8px"><a class="btn" href="../" style="text-decoration:none;display:inline-flex;align-items:center">目錄</a><button class="btn" data-go="routes">四條路線</button><button class="btn" data-go="start">回起點</button></span></div>
+<div class="bar"><span class="brand" id="brand"></span><span style="display:flex;gap:8px"><a class="btn" href="../" style="text-decoration:none;display:inline-flex;align-items:center">目錄</a><button class="btn" data-go="routes">路線</button><button class="btn" data-go="games">遊戲</button><button class="btn" data-go="start">起點</button></span></div>
 
 <section class="view start center" id="v-start">
 <div class="narrow">
@@ -271,6 +297,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <button class="btn main" data-go="quiz">開始抽機會卡</button>
 <button class="btn" data-go="dice">擲骰子，交給運氣</button>
 <button class="btn" data-go="routes">先看四條路線</button>
+<button class="btn" data-go="games">旅途小遊戲</button>
 <button class="btn" data-go="fb">寫意見給老婆</button>
 </div>
 <div class="pets" data-dog="汪！一起去跨年！" data-cat="本喵負責顧家。"></div>
@@ -335,6 +362,51 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <ol class="checks" id="checks"></ol>
 </div></details>
 <div class="pets" data-dog="四條路都想走！" data-cat="選有暖氣的那條。"></div>
+</div>
+</section>
+
+<section class="view" id="v-games">
+<div class="narrow">
+<h2 class="center">旅途小遊戲</h2>
+<p class="sub center">旅行途中拿出來玩，決定不了的事交給遊戲。</p>
+<div class="gtabs" role="tablist">
+<button class="gtab" role="tab" data-g="pay" aria-selected="true">誰付錢轉盤</button>
+<button class="gtab" role="tab" data-g="eat" aria-selected="false">今天吃什麼</button>
+<button class="gtab" role="tab" data-g="bingo" aria-selected="false">旅行賓果</button>
+<button class="gtab" role="tab" data-g="scratch" aria-selected="false">任務刮刮樂</button>
+</div>
+
+<div class="gpanel" id="g-pay">
+<div class="wheelbox"><div class="pointer" aria-hidden="true"></div><svg class="wheel" id="wpay" viewBox="-110 -110 220 220" aria-hidden="true"></svg></div>
+<div class="wres" id="rpay" aria-live="polite">按下去，看這筆誰付！</div>
+<div class="stack-btns"><button class="btn main" id="spinpay">轉！</button></div>
+<details class="more"><summary>修改轉盤選項（例如兩張信用卡）</summary><div class="in">
+<div class="chips" id="paylist"></div>
+<div class="addrow"><input id="payadd" maxlength="12" placeholder="新增選項，例如：老公的玉山卡"><button class="btn" id="payaddbtn">加入</button></div>
+<button class="btn" id="payreset" style="margin-top:10px">恢復預設</button>
+</div></details>
+</div>
+
+<div class="gpanel" id="g-eat" hidden>
+<div class="chips center" id="eatcity" style="justify-content:center;margin-bottom:12px"></div>
+<div class="wheelbox"><div class="pointer" aria-hidden="true"></div><svg class="wheel" id="weat" viewBox="-110 -110 220 220" aria-hidden="true"></svg></div>
+<div class="wres" id="reat" aria-live="polite">選城市，再轉轉看今天吃什麼。</div>
+<div class="stack-btns"><button class="btn main" id="spineat">轉！</button></div>
+</div>
+
+<div class="gpanel" id="g-bingo" hidden>
+<p class="sub center" style="margin-top:0">達成一格就點一下蓋章，連成一條線有驚喜。紀錄會存在這支手機上。</p>
+<div class="bingo" id="bingo"></div>
+<div class="wres" id="rbingo" aria-live="polite"></div>
+<div class="stack-btns"><button class="btn" id="bingoreset">清空重來</button></div>
+</div>
+
+<div class="gpanel" id="g-scratch" hidden>
+<p class="sub center" style="margin-top:0">用手指刮開銀色區域，看今天的小任務。</p>
+<div class="scratch"><div class="mission" id="mission"></div><canvas id="scv" aria-label="刮刮樂，用手指刮開"></canvas></div>
+<div class="stack-btns" style="margin-top:14px"><button class="btn main" id="newscratch">換一張</button><button class="btn" id="revealscratch">直接打開</button></div>
+</div>
+<div class="pets" data-dog="轉到老公付！汪！" data-cat="本喵只負責吃。"></div>
 </div>
 </section>
 
@@ -548,7 +620,7 @@ function show(id,why){
  <details class="more"><summary>每天怎麼走</summary><div class="in"><dl class="days" style="margin-top:12px">${p.d.map((x,i)=>`<dt>${DAYS[i]}</dt><dd>${sw(p.r[i])}${x}</dd>${p.x&&p.x[i]?`<dd class="sub2"><ul>${p.x[i].map(y=>`<li>${y}</li>`).join("")}</ul></dd>`:""}`).join("")}</dl></div></details>
  <details class="more"><summary>選這條要先注意</summary><div class="in"><div class="warn" style="margin-top:12px"><ul>${p.risk.map(x=>`<li>${x}</li>`).join("")}</ul></div></div></details>
  <details class="more"><summary>錢花在哪（兩人）</summary><div class="in"><table class="mini" style="margin-top:8px">${rows}<tr class="tot"><td>兩人預算合計</td><td>${f(p.lo)}–${f(p.hi)}</td></tr></table><p class="est">＊為估算，說明在「四條路線 → 銀行帳本」。</p></div></details>
- <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製「我選方案 ${p.k}」傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-go="fb">寫意見給老婆</button><button class="btn" data-go="quiz">重新抽卡</button><button class="btn" data-go="routes">看其他路線</button></div>
+ <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製「我選方案 ${p.k}」傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-go="games">旅途小遊戲</button><button class="btn" data-go="fb">寫意見給老婆</button><button class="btn" data-go="quiz">重新抽卡</button><button class="btn" data-go="routes">看其他路線</button></div>
  <div class="pets" id="deedpets"></div>`;
  pets($("deedpets"),{a:"雪地打滾！汪汪！",b:"巴黎！我要跟！",c:"煙火好漂亮！汪！",d:"布魯塞爾有鬆餅！"}[id],{a:"記得幫本喵買毛毯。",b:"住三晚，不錯。",c:"…還可以。",d:"省錢，本喵認可。"}[id]);
  go("plan-"+id);
@@ -635,10 +707,55 @@ document.addEventListener("click",e=>{
  upd();
 }
 
+/* mini games */
+{
+ const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+ const WC=["#f4a6b8","#f2b134","#8fd0c8","#a9c4f0","#ffd27a","#c9b3f2","#9ccf7a","#ffb38a"];
+ function drawWheel(svg,items){const n=items.length,a=2*Math.PI/n;let h="";items.forEach((t,i)=>{const s=i*a-Math.PI/2,e=s+a,x1=100*Math.cos(s),y1=100*Math.sin(s),x2=100*Math.cos(e),y2=100*Math.sin(e),m=s+a/2,deg=m*180/Math.PI;h+=`<path d="M0 0L${x1.toFixed(2)} ${y1.toFixed(2)}A100 100 0 ${a>Math.PI?1:0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}Z" fill="${WC[i%WC.length]}" stroke="#2b2622" stroke-width="1.5"/><text transform="rotate(${deg.toFixed(1)}) translate(58 0) rotate(${deg>90&&deg<270?180:0})" text-anchor="middle" dominant-baseline="middle">${t.length>7?t.slice(0,7)+"…":t}</text>`});h+=`<circle r="100" fill="none" stroke="#2b2622" stroke-width="4"/><circle r="14" fill="#fff" stroke="#2b2622" stroke-width="3"/><circle r="5" fill="#e4572e"/>`;svg.innerHTML=h}
+ function spinner(svg,res,getItems,label){let rot=0,busy=false;return()=>{if(busy)return;const items=getItems();if(items.length<2){res.textContent="至少要兩個選項喔";return}busy=true;const n=items.length,a=360/n,i=Math.floor(Math.random()*n),j=(Math.random()-.5)*a*.7;const target=((360-(i*a+a/2+j))%360+360)%360;rot=rot+360*6+((target-rot%360)+360)%360;svg.style.transform=`rotate(${rot}deg)`;res.classList.remove("win");res.textContent="轉轉轉……";setTimeout(()=>{res.textContent=label(items[i]);void res.offsetWidth;res.classList.add("win");busy=false},matchMedia("(prefers-reduced-motion:reduce)").matches?50:4300)}}
+ /* pay wheel */
+ const PAYDEF=["老公的卡","老婆的卡","AA 各付一半","猜拳輸的付","老公請客","老婆請客"];
+ let pay=ls.get("ntrip-pay",PAYDEF.slice());
+ const renderPay=()=>{drawWheel($("wpay"),pay);$("paylist").innerHTML=pay.map((t,i)=>`<button class="chip" data-payrm="${i}" aria-label="移除 ${t}">${t}<span class="x">✕</span></button>`).join("");ls.set("ntrip-pay",pay)};
+ renderPay();
+ $("spinpay").addEventListener("click",spinner($("wpay"),$("rpay"),()=>pay,t=>`這筆：${t}！`));
+ const addPay=()=>{const v=$("payadd").value.trim();if(v&&pay.length<10){pay.push(v);$("payadd").value="";renderPay()}};
+ $("payaddbtn").addEventListener("click",addPay);$("payadd").addEventListener("keydown",e=>{if(e.key=="Enter")addPay()});
+ $("payreset").addEventListener("click",()=>{pay=PAYDEF.slice();renderPay()});
+ $("paylist").addEventListener("click",e=>{const b=e.target.closest("[data-payrm]");if(b&&pay.length>2){pay.splice(+b.dataset.payrm,1);renderPay()}});
+ /* eat wheel */
+ const EAT={"冰島":["冰島熱狗堡","羊肉湯","炸魚薯條","超市自己煮","冰島優格 Skyr","加油站漢堡"],"Tromsø":["帝王蟹","鮭魚奶油湯","馴鹿肉排","北極啤酒館","肉桂捲咖啡","超市自己煮"],"巴黎":["可頌早餐","法式小酒館","可麗餅","甜點店","生蠔白酒","麵包店三明治"],"布魯塞爾":["列日鬆餅","淡菜配薯條","比利時啤酒館","巧克力店","炸薯條","燉牛肉"],"阿姆斯特丹":["荷蘭鬆餅","鯡魚堡","起司店試吃","印尼飯","炸肉丸","運河咖啡"]};
+ let city="冰島";
+ const renderEat=()=>{$("eatcity").innerHTML=Object.keys(EAT).map(c=>`<button class="chip" data-city="${c}" aria-pressed="${c==city}">${c}</button>`).join("");drawWheel($("weat"),EAT[city])};
+ renderEat();
+ $("eatcity").addEventListener("click",e=>{const b=e.target.closest("[data-city]");if(b){city=b.dataset.city;renderEat();$("reat").textContent=`${city}：轉轉看今天吃什麼。`}});
+ $("spineat").addEventListener("click",spinner($("weat"),$("reat"),()=>EAT[city],t=>`今天吃：${t}！`));
+ /* bingo */
+ const BI=["看到極光","雪地拍合照","吃到熱狗堡","跨年倒數","看到煙火","搭到 Eurostar","買到巧克力","看到鐵塔閃燈","泡到溫泉","看到馴鹿","遇到下雪","迷路一次","寄明信片給毛狗賓狗","吃到鬆餅","坐到早班機","互拍網美照"];
+ let bon=ls.get("ntrip-bingo",[]);
+ const LINES=[];for(let r=0;r<4;r++)LINES.push([0,1,2,3].map(c=>r*4+c));for(let c=0;c<4;c++)LINES.push([0,1,2,3].map(r=>r*4+c));LINES.push([0,5,10,15],[3,6,9,12]);
+ const renderBingo=(fresh)=>{const done=LINES.filter(l=>l.every(i=>bon.includes(i)));const inLine=new Set(done.flat());$("bingo").innerHTML=BI.map((t,i)=>`<button class="bcell ${bon.includes(i)?"on":""} ${inLine.has(i)?"line":""}" data-b="${i}" aria-pressed="${bon.includes(i)}">${t}</button>`).join("");$("rbingo").textContent=done.length?`BINGO！已經連成 ${done.length} 條線`:`已蓋章 ${bon.length} / 16`;if(fresh&&done.length){$("rbingo").classList.remove("win");void $("rbingo").offsetWidth;$("rbingo").classList.add("win");if(typeof celebrate=="function")celebrate(["a","b","c","d"][done.length%4])}ls.set("ntrip-bingo",bon)};
+ renderBingo(false);
+ $("bingo").addEventListener("click",e=>{const b=e.target.closest("[data-b]");if(!b)return;const i=+b.dataset.b,before=LINES.filter(l=>l.every(k=>bon.includes(k))).length;bon=bon.includes(i)?bon.filter(x=>x!=i):[...bon,i];const after=LINES.filter(l=>l.every(k=>bon.includes(k))).length;renderBingo(after>before)});
+ $("bingoreset").addEventListener("click",()=>{bon=[];renderBingo(false)});
+ /* scratch */
+ const MS=["今天由老公提行李","幫對方拍一張網美照","用當地語言說一次謝謝","寄一張明信片給毛狗賓狗","今天晚餐老婆點菜","買一個當地小零食分著吃","選一首今天的主題曲","今天的咖啡老公請","找一個地方一起看日落","拍一張兩個人的醜照","說出今天最喜歡的瞬間","今天由老婆決定行程順序"];
+ const cv=$("scv"),cx=cv.getContext("2d");let cleared=false,down=false;
+ function cover(){const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=Math.max(1,r.width*d);cv.height=Math.max(1,r.height*d);cx.setTransform(d,0,0,d,0,0);cx.globalCompositeOperation="source-over";const g=cx.createLinearGradient(0,0,r.width,r.height);g.addColorStop(0,"#c9c9c9");g.addColorStop(.5,"#eeeeee");g.addColorStop(1,"#b5b5b5");cx.fillStyle=g;cx.fillRect(0,0,r.width,r.height);cx.fillStyle="#7a7a7a";cx.font="bold 22px sans-serif";cx.textAlign="center";cx.fillText("刮這裡！",r.width/2,r.height/2+8);cv.style.opacity="1";cv.style.transition="";cleared=false}
+ function newCard(){$("mission").textContent=MS[Math.floor(Math.random()*MS.length)];cover()}
+ function scr(e){if(!down||cleared)return;const r=cv.getBoundingClientRect();cx.globalCompositeOperation="destination-out";cx.beginPath();cx.arc(e.clientX-r.left,e.clientY-r.top,22,0,7);cx.fill()}
+ function check(){if(cleared)return;const d=cx.getImageData(0,0,cv.width,cv.height).data;let c=0,t=0;for(let i=3;i<d.length;i+=64){t++;if(d[i]==0)c++}if(c/t>.45)reveal()}
+ function reveal(){cleared=true;cv.style.transition="opacity .4s";cv.style.opacity="0"}
+ cv.addEventListener("pointerdown",e=>{down=true;cv.setPointerCapture(e.pointerId);scr(e)});cv.addEventListener("pointermove",scr);cv.addEventListener("pointerup",()=>{down=false;check()});
+ $("newscratch").addEventListener("click",newCard);$("revealscratch").addEventListener("click",reveal);
+ /* tabs */
+ document.querySelector(".gtabs").addEventListener("click",e=>{const b=e.target.closest(".gtab");if(!b)return;document.querySelectorAll(".gtab").forEach(x=>x.setAttribute("aria-selected",x==b));document.querySelectorAll(".gpanel").forEach(p=>p.hidden=p.id!="g-"+b.dataset.g);if(b.dataset.g=="scratch")requestAnimationFrame(()=>{if(!$("mission").textContent)newCard();else cover()})});
+}
+
 function route(){
  const hsh=location.hash.slice(1),m=hsh.match(/^plan-([abcd])$/);
  if(m){if(m[1]!=cur)show(m[1],"");else view("plan");return}
- if(["routes","dice","quiz","fb"].includes(hsh)){go(hsh,false);return}
+ if(["routes","dice","quiz","fb","games"].includes(hsh)){go(hsh,false);return}
  view("start");
 }
 route();
