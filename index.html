@@ -277,6 +277,18 @@ table{font-size:13px}.ledger th,.ledger td{padding:7px 5px}
 .snap .datestamp{right:10px;bottom:10px;font-size:15px}
 @media(prefers-reduced-motion:reduce){.flash.go{animation:none}}
 
+
+/* feedback */
+.fbbox{background:var(--tile,#fff);padding:6px 18px 20px;box-shadow:0 6px 16px rgba(0,0,0,.12);border-radius:8px}
+.fbrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px dashed rgba(0,0,0,.15)}
+.fbrow b{font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:42px;padding:6px 14px;border:2px solid var(--ink);border-radius:22px;background:#fff;color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+.chip:focus-visible{outline:3px dashed var(--ink);outline-offset:2px}
+#fbtext{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);resize:vertical}
+a.btn{text-decoration:none;display:flex;align-items:center;justify-content:center}
+#fbprev{white-space:pre-wrap;font:inherit;font-size:14px;margin:10px 0 0}
 </style>
 </head>
 <body>
@@ -294,6 +306,7 @@ table{font-size:13px}.ledger th,.ledger td{padding:7px 5px}
 <button class="btn main" data-go="quiz">開始抽機會卡</button>
 <button class="btn" data-go="dice">擲骰子，交給運氣</button>
 <button class="btn" data-go="routes">先看四條路線</button>
+<button class="btn" data-go="fb">寫意見給老婆</button>
 </div>
 <div class="pets" data-dog="汪！一起去跨年！" data-cat="本喵負責顧家。"></div>
 </div>
@@ -357,6 +370,30 @@ table{font-size:13px}.ledger th,.ledger td{padding:7px 5px}
 <ol class="checks" id="checks"></ol>
 </div></details>
 <div class="pets" data-dog="四條路都想走！" data-cat="選有暖氣的那條。"></div>
+</div>
+</section>
+
+<section class="view" id="v-fb">
+<div class="narrow">
+<h2 class="center">寫意見給老婆</h2>
+<p class="sub center">每條路線點一個感覺，再寫幾句話，最後按「用 LINE 傳給老婆」。</p>
+<div class="fbbox">
+<h3>每條路線的感覺</h3>
+<div id="fbrows"></div>
+<h3>最想走哪條？</h3>
+<div class="chips" id="fbbest"></div>
+<h3>預算感覺</h3>
+<div class="chips" id="fbbudget"></div>
+<h3><label for="fbtext">想跟老婆說的話</label></h3>
+<textarea id="fbtext" rows="4" placeholder="例如：想多留一天在巴黎、冰島開車我來"></textarea>
+<div class="stack-btns" style="margin-top:16px">
+<a class="btn main" id="fbline" href="#" target="_blank" rel="noopener">用 LINE 傳給老婆</a>
+<button class="btn" id="fbcopy">複製文字</button>
+<span class="hint" id="fbtoast">電腦上沒有 LINE 的話，按「複製文字」再貼給老婆。</span>
+</div>
+<details class="more"><summary>預覽要傳的內容</summary><div class="in"><pre id="fbprev"></pre></div></details>
+</div>
+<div class="pets" data-dog="老公加油！汪！" data-cat="寫清楚一點喵。"></div>
 </div>
 </section>
 
@@ -546,7 +583,7 @@ function show(id,why){
  <details class="more"><summary>每天怎麼走</summary><div class="in"><dl class="days" style="margin-top:12px">${p.d.map((x,i)=>`<dt>${DAYS[i]}</dt><dd>${sw(p.r[i])}${x}</dd>${p.x&&p.x[i]?`<dd class="sub2"><ul>${p.x[i].map(y=>`<li>${y}</li>`).join("")}</ul></dd>`:""}`).join("")}</dl></div></details>
  <details class="more"><summary>選這條要先注意</summary><div class="in"><div class="warn" style="margin-top:12px"><ul>${p.risk.map(x=>`<li>${x}</li>`).join("")}</ul></div></div></details>
  <details class="more"><summary>錢花在哪（兩人）</summary><div class="in"><table class="mini" style="margin-top:8px">${rows}<tr class="tot"><td>兩人預算合計</td><td>${f(p.lo)}–${f(p.hi)}</td></tr></table><p class="est">＊為估算，說明在「四條路線 → 銀行帳本」。</p></div></details>
- <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製方案 ${p.k} 傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-go="quiz">重新抽卡</button><button class="btn" data-go="routes">看其他路線</button></div>
+ <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製方案 ${p.k} 傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-go="fb">寫意見給老婆</button><button class="btn" data-go="quiz">重新抽卡</button><button class="btn" data-go="routes">看其他路線</button></div>
  <div class="pets" id="deedpets"></div>`;
  pets($("deedpets"),{a:"雪地打滾！汪汪！",b:"巴黎！我要跟！",c:"煙火好漂亮！汪！",d:"布魯塞爾有鬆餅！"}[id],{a:"記得幫本喵買毛毯。",b:"住三晚，不錯。",c:"…還可以。",d:"省錢，本喵認可。"}[id]);
  go("plan-"+id);
@@ -597,10 +634,31 @@ document.addEventListener("click",e=>{
  const setPw=()=>$("collage").style.setProperty("--pw",matchMedia("(max-width:600px)").matches?"116px":"150px");setPw();addEventListener("resize",setPw);
 }
 
+/* feedback to wife */
+{
+ const fb={rate:{},best:"",budget:"",text:""};
+ const R=["超想去","可以考慮","不太想"],BG=["太貴了","還可以","很划算"];
+ $("fbrows").innerHTML=PLANS.map(p=>`<div class="fbrow"><b>${p.k}｜${p.name}</b><span class="chips">${R.map(r=>`<button class="chip" data-fk="rate" data-fp="${p.id}" data-v="${r}" aria-pressed="false">${r}</button>`).join("")}</span></div>`).join("");
+ $("fbbest").innerHTML=PLANS.map(p=>`<button class="chip" data-fk="best" data-v="${p.id}" aria-pressed="false">方案 ${p.k}</button>`).join("");
+ $("fbbudget").innerHTML=BG.map(v=>`<button class="chip" data-fk="budget" data-v="${v}" aria-pressed="false">${v}</button>`).join("");
+ const txt=()=>{const L=["【跨年大富翁・老公的意見】"];const b=PLANS.find(p=>p.id==fb.best);L.push("最想走："+(b?`方案 ${b.k} ${b.name}`:"還沒決定"));PLANS.forEach(p=>{if(fb.rate[p.id])L.push(`${p.k} ${p.name}：${fb.rate[p.id]}`)});if(fb.budget)L.push("預算感覺："+fb.budget);if(fb.text.trim())L.push("想說的話："+fb.text.trim());return L.join("\n")};
+ const upd=()=>{const t=txt();$("fbprev").textContent=t;$("fbline").href="https://line.me/R/share?text="+encodeURIComponent(t)};
+ document.addEventListener("click",e=>{
+  const c=e.target.closest(".chip");
+  if(c){const k=c.dataset.fk,v=c.dataset.v;
+   if(k=="rate"){fb.rate[c.dataset.fp]=v;document.querySelectorAll(`.chip[data-fk="rate"][data-fp="${c.dataset.fp}"]`).forEach(x=>x.setAttribute("aria-pressed",x==c))}
+   else{fb[k]=v;document.querySelectorAll(`.chip[data-fk="${k}"]`).forEach(x=>x.setAttribute("aria-pressed",x==c))}
+   upd();return}
+  if(e.target.closest("#fbcopy")){const t=txt();navigator.clipboard.writeText(t).then(()=>{$("fbtoast").textContent="已複製，貼到 LINE 給老婆就好"}).catch(()=>{$("fbtoast").textContent="無法自動複製，請長按預覽的文字手動複製"})}
+ });
+ $("fbtext").addEventListener("input",e=>{fb.text=e.target.value;upd()});
+ upd();
+}
+
 function route(){
  const hsh=location.hash.slice(1),m=hsh.match(/^plan-([abcd])$/);
  if(m){if(m[1]!=cur)show(m[1],"");else view("plan");return}
- if(["routes","dice","quiz"].includes(hsh)){go(hsh,false);return}
+ if(["routes","dice","quiz","fb"].includes(hsh)){go(hsh,false);return}
  view("start");
 }
 route();
