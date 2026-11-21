@@ -341,6 +341,9 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 @media(max-width:600px){.ring{grid-template-rows:repeat(5,minmax(60px,auto))!important;gap:4px!important}.rc{font-size:10.5px;padding:3px 2px}.rc .pin{width:24px;height:24px;font-size:14px}.rc.ev b{font-size:13px}.mid{padding:6px}.mid p{font-size:13px}.die{width:44px;height:44px}}
 
 /* two-player bank */
+.whoami{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:0 0 14px;font-weight:700;font-size:15px}
+.evt a.btn{text-decoration:none}
+#rollbtn:disabled{cursor:not-allowed}
 .turn{font-size:15px;font-weight:700}
 .bank{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px auto 0;max-width:620px}
 .acct{background:#fff;border-radius:10px;padding:8px 6px;text-align:center;box-shadow:0 3px 8px rgba(0,0,0,.12);border-top:6px solid var(--c,#999)}
@@ -403,6 +406,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <div class="narrow">
 <h2 class="center">跨年大富翁・雙人對戰</h2>
 <p class="sub center">開局各出 €100 當遊戲基金。輪流擲骰子：買下方案收過路費、罰錢、坐牢、搶對方的錢，最後結算。</p>
+<div class="whoami" id="whoami"></div>
 <div class="ring" id="ring">
 <div class="mid"><div class="turn" id="turn"></div><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button></div>
 </div>
@@ -740,9 +744,28 @@ async function roll(){
 }
 document.addEventListener("click",e=>{
  const a=e.target.closest("[data-act]");if(a&&pending){const fn=pending[+a.dataset.act];pending=null;fn();return}
- if(e.target.closest("#newgame")){G=NEW();pending=null;busy=false;roll.bailAsked=false;render();msg("新的一局！老婆、老公各出 €100。<br>老婆先擲！");return}
+ if(e.target.closest("#newgame")){G=Object.assign(NEW(),{seq:(G.seq||0)+1});pending=null;busy=false;roll.bailAsked=false;render();msg("新的一局！老婆、老公各出 €100。<br>老婆先擲！");return}
  if(e.target.closest("#settle")){msg(`<b>目前戰況</b><br>${settleText()}`);return}
 });
+
+
+/* ---------- play on two phones: pass the game by link ---------- */
+const ME_KEY="ntrip-me";
+let ME=(()=>{try{const v=localStorage.getItem(ME_KEY);return v===null?"both":v}catch(e){return "both"}})();
+const BOARDV=document.title.includes("桌遊");
+const SHARE_BASE=location.hostname.endsWith("github.io")?location.origin+location.pathname:"https://cclee0210.github.io/newyear-trip/europe/"+(BOARDV?"boardgame.html":"");
+const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
+function renderWho(){$("whoami").innerHTML=`這支手機是：${[["0","老婆"],["1","老公"],["both","兩人一起用"]].map(([v,l])=>`<button class="chip" data-me="${v}" aria-pressed="${ME==v}">${l}</button>`).join("")}`}
+renderWho();
+document.addEventListener("click",e=>{const b=e.target.closest("[data-me]");if(!b)return;ME=b.dataset.me;try{localStorage.setItem(ME_KEY,ME)}catch(x){}renderWho();gate(true)});
+function shareRow(){if(ME==="both"||G.over)return "";const nx=PL[G.turn].n,url=SHARE_BASE+"#dice="+enc(G),t=`輪到你擲骰子了！跨年大富翁戰況：老婆 €${G.bal[0]}、老公 €${G.bal[1]}，點這裡接著玩 ${url}`;return `<div class="acts"><a class="btn main" href="https://line.me/R/share?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">把棋局傳給${nx}（LINE）</a><button class="btn" data-copylink="${url}">複製棋局連結</button></div>`}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-copylink]");if(!b)return;navigator.clipboard.writeText(b.dataset.copylink).then(()=>{b.textContent="已複製！"}).catch(()=>{b.textContent="請手動複製網址"})});
+function gate(showWait){const rb=$("rollbtn");if(!rb)return;const mine=ME==="both"||+ME===G.turn;rb.disabled=!mine||G.over;rb.style.opacity=rb.disabled?.45:1;if(showWait&&!mine&&!G.over&&!pending){msg(`輪到 <b>${PL[G.turn].n}</b>，等對方擲完把棋局傳回來。${shareRow()}`)}}
+const _endTurn=endTurn;
+endTurn=function(extra=""){_endTurn(extra);if(!G.over){G.seq=(G.seq||0)+1;save();if(ME!=="both")msg($("rollmsg").innerHTML+shareRow());gate()}};
+const _render=render;render=function(){_render();gate()};
+function loadShared(s){try{const inc=dec(s);if(!inc||!inc.bal)return false;if((inc.seq||0)<(G.seq||0)&&!G.over){msg("這是比較舊的棋局連結，已保留手機上較新的戰況。");return true}G=Object.assign(NEW(),inc);pending=null;busy=false;roll.bailAsked=false;save();setTimeout(()=>{render();gate(true);msg(`收到最新棋局！老婆 €${G.bal[0]}、老公 €${G.bal[1]}、旅費罐 €${G.pot}<br>輪到 <b>${PL[G.turn].n}</b>`+(ME!=="both"&&+ME!==G.turn?"，等對方擲完傳回來。":"，換你擲骰子！"))},60);return true}catch(e){msg("棋局連結壞掉了，請對方重傳一次。");return true}}
 
 /* ---------- title deed ---------- */
 function show(id,why){
@@ -879,6 +902,7 @@ document.addEventListener("click",e=>{
 
 function route(){
  const hsh=location.hash.slice(1),m=hsh.match(/^plan-([abcd])$/);
+ const dm=hsh.match(/^dice=(.+)$/);if(dm){loadShared(dm[1]);view("dice");try{history.replaceState(null,"","#dice")}catch(e){}return}
  if(m){if(m[1]!=cur)show(m[1],"");else view("plan");return}
  if(["routes","dice","quiz","fb","games"].includes(hsh)){go(hsh,false);return}
  view("start");
