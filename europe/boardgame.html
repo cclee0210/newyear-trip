@@ -328,6 +328,16 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .rc .own[style*="transparent"]{display:none}
 .token.tk0,.token.tk1{width:34px;height:52px}
 @media(max-width:600px){.token.tk0,.token.tk1{width:26px;height:40px}.acct b{font-size:19px}}
+
+/* itinerary monopoly */
+.planpick{text-align:center;margin:0 0 12px}
+.planpick p{margin:4px 0}
+.rc.prop{justify-content:flex-start;padding:0 0 4px;overflow:hidden}
+.rc.prop .band{display:flex;align-items:center;justify-content:center;width:100%;height:24px;background:var(--k);margin-bottom:3px}
+.rc.prop .band .ic{width:18px;height:18px}
+.rc.prop .nm{font-weight:700;line-height:1.2;padding:0 2px}
+.rc.prop small{font-size:11px;opacity:.75;font-family:ui-monospace,Menlo,monospace}
+@media(max-width:600px){.rc.prop .band{height:18px}.rc.prop .band .ic{width:14px;height:14px}.rc.prop .nm{font-size:10px}}
 </style>
 </head>
 <body>
@@ -369,16 +379,17 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 
 <section class="view" id="v-dice">
 <div class="narrow">
-<h2 class="center">跨年大富翁・雙人對戰</h2>
-<p class="sub center">開局各出 €100 當遊戲基金。輪流擲骰子：買下方案收過路費、罰錢、坐牢、搶對方的錢，最後結算。</p>
+<h2 class="center" id="dicetitle">跨年大富翁・雙人對戰</h2>
+<p class="sub center">開局各出 €100 當遊戲基金。輪流擲骰子，買下行程景點收過路費，還有罰錢、坐牢、搶對方的錢，最後結算。</p>
 <div class="whoami" id="whoami"></div>
+<div class="planpick" id="planpick"></div>
 <div class="ring" id="ring">
 <div class="mid"><div class="turn" id="turn"></div><div class="dicebar"><div class="die" id="d1" aria-hidden="true"></div><div class="die" id="d2" aria-hidden="true"></div></div><button class="btn main" id="rollbtn">擲！</button></div>
 </div>
 <div class="bank" id="bank"></div>
 <div class="evt" id="rollmsg" aria-live="polite"></div>
 <div class="stack-btns" style="margin-top:12px"><button class="btn" id="settle">結算一下</button><button class="btn" id="newgame">重新開局（各出 €100）</button></div>
-<div class="pets" data-dog="老公加油！搶光她的錢！" data-cat="本喵只收現金。"></div>
+<div class="pets" data-dog="哥哥加油！搶光她的錢！" data-cat="本喵只收現金。"></div>
 </div>
 </section>
 
@@ -457,7 +468,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <div class="scratch"><div class="mission" id="mission"></div><canvas id="scv" aria-label="刮刮樂，用手指刮開"></canvas></div>
 <div class="stack-btns" style="margin-top:14px"><button class="btn main" id="newscratch">換一張 New card</button><button class="btn" id="revealscratch">直接打開 Reveal</button></div>
 </div>
-<div class="pets" data-dog="轉到老公付！汪！" data-cat="本喵只負責吃。"></div>
+<div class="pets" data-dog="轉到哥哥付！汪！" data-cat="本喵只負責吃。"></div>
 </div>
 </section>
 
@@ -481,7 +492,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 </div>
 <details class="more"><summary>預覽要傳的內容</summary><div class="in"><pre id="fbprev"></pre></div></details>
 </div>
-<div class="pets" data-dog="老公加油！汪！" data-cat="寫清楚一點喵。"></div>
+<div class="pets" data-dog="哥哥加油！汪！" data-cat="寫清楚一點喵。"></div>
 </div>
 </section>
 
@@ -600,7 +611,7 @@ $("exp").innerHTML=EXP.map(r=>`<tr>${r.map((x,i)=>`<td data-l="${H[i]}">${i?x:`<
 $("checks").innerHTML=CHECKS.map(x=>`<li>${x}</li>`).join("");
 
 /* ---------- chance cards ---------- */
-const QL={q1:["這題老公選！汪～","選暖和的。"],q1b:["雪地可以打滾！","冰島很冷喔，本喵提醒。"],q2:["巴黎有好吃的嗎？","本喵想要可頌。"],q3:["行李我幫忙叼！","多搬一次行李？本喵不搬。"]};
+const QL={q1:["這題哥哥選！汪～","選暖和的。"],q1b:["雪地可以打滾！","冰島很冷喔，本喵提醒。"],q2:["巴黎有好吃的嗎？","本喵想要可頌。"],q3:["行李我幫忙叼！","多搬一次行李？本喵不搬。"]};
 function quiz(){
  const last=path[path.length-1],q=Q[last];
  const total=path.includes("q1b")?4:3,n=path.length;
@@ -634,50 +645,75 @@ async function walkTo(id){
 }
 window.addEventListener("resize",()=>{});
 
-/* ---------- dice ring (two-player monopoly with real game fund) ---------- */
+/* ---------- itinerary monopoly (two players, real game fund) ---------- */
 const RING=[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[3,0],[2,0],[1,0]];
-const CELLS=["go","a","fine","b","jail","c","chance","d","rest","a","fate","b","tojail","c","tax","d"];
+const CELLS=["go","p0","fine","p1","jail","p2","chance","p3","rest","p4","fate","p5","tojail","p6","tax","p7"];
 const EVT={go:["起點","GO"],fine:["罰錢","FINE"],jail:["坐牢","JAIL"],chance:["機會","?"],rest:["休息站","拿走罐子"],fate:["命運","!"],tojail:["去坐牢","GO TO JAIL"],tax:["觀光稅","TAX"]};
+const PRICES=[6,6,8,8,10,10,12,14];
+const STOPS={
+ a:[["阿姆斯特丹","ams"],["Eyrarbakki","ice"],["黃金圈","ice"],["塞里雅蘭瀑布","ice"],["黑沙灘","ice"],["藍冰洞","ice"],["冰河湖","ice"],["雷克雅維克","ice"]],
+ b:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["巴黎鐵塔","par"],["羅浮宮","par"],["迪士尼樂園","dis"],["Eurostar","bru"],["布魯塞爾","bru"]],
+ c:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["巴黎市區","par"],["蒙馬特","par"],["迪士尼樂園","dis"],["Crowne Plaza","dis"],["布魯塞爾","bru"]],
+ d:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["布魯塞爾大廣場","bru"],["尿尿小童","bru"],["鬆餅店","bru"],["迪士尼樂園","dis"],["Eurostar","bru"]]};
 const PL=[{n:"老婆",c:"#ff6b5b",vb:"4 0 28 52"},{n:"老公",c:"#3a6fd8",vb:"28 0 28 52"}];
-const PRICE=10,RENT=4;
 const FINES=["用三種語言說「我好冷」","幫對方拍一張他指定姿勢的照片","學企鵝走路 10 步","對著鏡頭唱一句跨年歌","模仿賓狗的臭臉 5 秒","用超浮誇的語氣誇對方今天的穿搭"];
 const TAXES=["跟一個雕像擺一樣的姿勢合照","用當地語言跟店員說謝謝","在街上跳 5 秒的勝利舞","嚐一口當地最奇怪的零食","找一個路人幫你們拍合照"];
-const FATES=[["被大鵝追！逃跑時掉了 €3","pot",-3],["撿到一顆雪球丟中對方，對方賠你 €3","opp",3],["遇到羊群學羊叫，路人給你 €2 小費（從罐子拿）","potget",2],["被海鷗搶走薯條，崩潰付 €2 進罐子","pot",-2],["馴鹿擋路，用馴鹿的姿勢走 5 步","none",0],["路邊的貓不理你，學賓狗臭臉回敬牠","none",0],["被風吹走帽子，對方幫你追回來，付他 €2","opp",-2],["街頭藝人表演，跟著扭 5 秒，打賞 €1 進罐子","pot",-1]];
-const CHANCES=[["前進 3 格！","move",3],["倒退 2 格……","move",-2],["獲得出獄卡一張","card",0],["前往最近的方案格","plan",0],["向對方收 €5","opp",5],["給對方 €3 當小費","opp",-3],["親對方一下才能繼續","none",0]];
+const FATES=[["被大鵝追！逃跑時掉了 €3","pot",-3],["撿到一顆雪球丟中對方，對方賠你 €3","opp",3],["遇到羊群學羊叫，從旅費罐拿 €2 小費","potget",2],["被海鷗搶走薯條，崩潰付 €2 進罐子","pot",-2],["馴鹿擋路，用馴鹿的姿勢走 5 步","none",0],["路邊的貓不理你，學賓狗臭臉回敬牠","none",0],["被風吹走帽子，對方幫你追回來，付他 €2","opp",-2],["街頭藝人表演，跟著扭 5 秒，打賞 €1 進罐子","pot",-1]];
+const CHANCES=[["前進 3 格！","move",3],["倒退 2 格……","move",-2],["獲得出獄卡一張","card",0],["前往最近的景點","spot",0],["向對方收 €5","opp",5],["給對方 €3 當小費","opp",-3],["親對方一下才能繼續","none",0]];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-const NEW=()=>({pos:[0,0],bal:[100,100],pot:0,own:{a:null,b:null,c:null,d:null},jail:[0,0],card:[false,false],turn:0,over:false});
-let G=(()=>{try{return JSON.parse(localStorage.getItem("ntrip-mono"))||NEW()}catch(e){return NEW()}})();
+const NEW=(plan)=>({plan:plan||null,pos:[0,0],bal:[100,100],pot:0,own:{},jail:[0,0],card:[false,false],turn:0,over:false,seq:0});
+let G=(()=>{try{const g=JSON.parse(localStorage.getItem("ntrip-mono"));return g&&g.bal?Object.assign(NEW(),g):NEW()}catch(e){return NEW()}})();
 const save=()=>{try{localStorage.setItem("ntrip-mono",JSON.stringify(G))}catch(e){}};
 const eur=v=>`€${v}`;
-const ringCell=(t,i)=>{const [r,c]=RING[i];const at=`grid-area:${r+1}/${c+1}`;if(EVT[t])return `<div class="rc ev ev-${t}" id="rc${i}" style="${at}"><b>${EVT[t][0]}</b><small>${EVT[t][1]}</small></div>`;const p=PLANS.find(x=>x.id==t);return `<div class="rc" id="rc${i}" style="${at};--k:${TK[t]}"><span class="pin">${p.k}</span>${p.name.split("＋")[0]}${t=="a"?"":"＋"+p.name.split("＋")[1].replace(/ /g,"")}<i class="own" data-own="${t}"></i></div>`};
-$("ring").insertAdjacentHTML("afterbegin",CELLS.map(ringCell).join("")+PL.map((p,i)=>`<div class="token tk${i}" id="tk${i}"><svg viewBox="${p.vb}" aria-hidden="true">${COUPLE.replace(/^<svg[^>]*>/,"").replace(/<\/svg>$/,"")}</svg></div>`).join(""));
-function place(pi){const c=$("rc"+G.pos[pi]),tk=$("tk"+pi),off=(pi?1:-1)*(c.offsetWidth*.18);tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2+off}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`}
-function lit(i){document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));$("rc"+i).classList.add("lit")}
+const spot=k=>STOPS[G.plan][+k.slice(1)];
+let pending=null;
+const msg=h=>{$("rollmsg").innerHTML=h};
+function buildRing(){
+ document.querySelectorAll("#ring .rc,#ring .token").forEach(n=>n.remove());
+ if(!G.plan)return;
+ const cell=(t,i)=>{const [r,c]=RING[i],at=`grid-area:${r+1}/${c+1}`;if(EVT[t])return `<div class="rc ev ev-${t}" id="rc${i}" style="${at}"><b>${EVT[t][0]}</b><small>${EVT[t][1]}</small></div>`;const [nm,ck]=spot(t),pr=PRICES[+t.slice(1)];return `<div class="rc prop" id="rc${i}" style="${at};--k:${P[ck][1]}"><span class="band">${icon(ck)}</span><span class="nm">${nm}</span><small>€${pr}</small><i class="own" data-own="${t}"></i></div>`};
+ $("ring").insertAdjacentHTML("afterbegin",CELLS.map(cell).join("")+PL.map((p,i)=>`<div class="token tk${i}" id="tk${i}"><svg viewBox="${p.vb}" aria-hidden="true">${COUPLE.replace(/^<svg[^>]*>/,"").replace(/<\/svg>$/,"")}</svg></div>`).join(""));
+}
+function place(pi){const c=$("rc"+G.pos[pi]),tk=$("tk"+pi);if(!c||!tk)return;const off=(pi?1:-1)*(c.offsetWidth*.18);tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2+off}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`}
+function lit(i){document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));const c=$("rc"+i);c&&c.classList.add("lit")}
+function renderPick(){const p=PLANS.find(x=>x.id==G.plan);$("dicetitle").textContent=p?`${p.name}・大富翁`:"跨年大富翁・雙人對戰";$("planpick").innerHTML=p?`<span>目前路線：<b>方案 ${p.k}</b></span><button class="linkbtn" data-chg="1">換路線</button>`:`<p><b>先選定要走哪條路線</b>，棋盤會變成那條路線的行程！</p><div class="chips" style="justify-content:center">${PLANS.map(x=>`<button class="chip" data-setplan="${x.id}">方案 ${x.k} ${x.name.split("＋")[0]}${x.id=="a"?"":"＋…"}</button>`).join("")}</div><p class="hint">還沒決定的話，先去抽機會卡。</p>`;$("ring").hidden=!p;$("bank").hidden=!p}
 function render(){
- [0,1].forEach(place);
- document.querySelectorAll(".own").forEach(o=>{const w=G.own[o.dataset.own];o.style.background=w==null?"transparent":PL[w].c;o.title=w==null?"":PL[w].n+"的地"});
+ renderPick();
+ if(G.plan){[0,1].forEach(place);document.querySelectorAll(".own").forEach(o=>{const w=G.own[o.dataset.own];o.style.background=w==null?"transparent":PL[w].c})}
  $("bank").innerHTML=PL.map((p,i)=>`<div class="acct ${G.turn==i&&!G.over?"now":""}" style="--c:${p.c}"><span>${p.n}</span><b>${eur(G.bal[i])}</b>${G.jail[i]?"<small>坐牢中</small>":G.card[i]?"<small>有出獄卡</small>":""}</div>`).join("")+`<div class="acct pot"><span>旅費罐</span><b>${eur(G.pot)}</b></div>`;
  $("turn").innerHTML=G.over?"遊戲結束":`輪到 <b style="color:${PL[G.turn].c}">${PL[G.turn].n}</b>`;
- save();
+ save();gate();
 }
-const msg=h=>{$("rollmsg").innerHTML=h};
-function pay(from,to,v){/* from/to: 0,1 players, "pot" */v=Math.max(0,v);if(from!=="pot"){G.bal[from]-=v}else{v=Math.min(v,G.pot);G.pot-=v}if(to==="pot")G.pot+=v;else if(to!=null)G.bal[to]+=v;return v}
-function checkOver(){const b=G.bal.findIndex(x=>x<0);if(b>=0){G.over=true;render();msg(`<b>${PL[b].n}破產了！</b>${PL[1-b].n}獲勝 🏆`.replace(" 🏆","")+`<br>${settleText()}`);if(typeof celebrate=="function")celebrate("c");return true}return false}
-function settleText(){const d0=G.bal[0]-100,d1=G.bal[1]-100;const s=(n,d)=>`${n}${d>=0?"賺":"賠"} ${eur(Math.abs(d))}`;return `結算：${s("老婆",d0)}、${s("老公",d1)}，旅費罐 ${eur(G.pot)} 一起拿去吃甜點。`}
-function endTurn(extra=""){if(checkOver())return;G.turn=1-G.turn;render();busy=false;if(extra)msg(extra+`<br><small>換 ${PL[G.turn].n} 擲骰子</small>`)}
+function setPlan(id){if(G.plan&&G.plan!==id&&(G.seq||G.pot||G.bal[0]!=100||G.bal[1]!=100)){if(!confirmSwitch(id))return}G=NEW(id);G.seq=Date.now()%100000;pending=null;busy=false;buildRing();render();msg(`路線定好了！棋盤變成「${PLANS.find(x=>x.id==id).name}」的行程。<br>老婆、老公各出 €100，老婆先擲！`)}
+let switchTo=null;function confirmSwitch(id){if(switchTo===id){switchTo=null;return true}switchTo=id;msg(`換路線會重新開局，目前戰況會清掉。<div class="acts"><button class="btn main" data-setplan="${id}">確定換成方案 ${id.toUpperCase()}</button></div>`);return false}
+function pay(from,to,v){v=Math.max(0,v);if(from!=="pot"){G.bal[from]-=v}else{v=Math.min(v,G.pot);G.pot-=v}if(to==="pot")G.pot+=v;else if(to!=null)G.bal[to]+=v;return v}
+function settleText(){const s=(n,d)=>`${n}${d>=0?"賺":"賠"} ${eur(Math.abs(d))}`;return `結算：${s("老婆",G.bal[0]-100)}、${s("老公",G.bal[1]-100)}，旅費罐 ${eur(G.pot)} 一起拿去吃甜點。`}
+function checkOver(){const b=G.bal.findIndex(x=>x<0);if(b>=0){G.over=true;render();msg(`<b>${PL[b].n}破產了！${PL[1-b].n}獲勝！</b><br>${settleText()}`);if(typeof celebrate=="function")celebrate("c");return true}return false}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function die(el,n){el.innerHTML=[...Array(9)].map((_,i)=>`<i style="visibility:${PIPS[n].includes(i)?"visible":"hidden"}"></i>`).join("")}
 die($("d1"),5);die($("d2"),2);
-function resetRing(){setTimeout(()=>{render();if(!$("rollmsg").innerHTML)msg(`開局：老婆、老公各出 €100。<br>輪到 ${PL[G.turn].n} 先擲！`)},30)}
+function resetRing(){setTimeout(()=>{buildRing();render();if(!$("rollmsg").innerHTML&&G.plan)msg(`老婆、老公各出 €100。輪到 ${PL[G.turn].n} 擲！`)},30)}
 async function walk(pi,steps){const tk=$("tk"+pi),dir=steps<0?-1:1;for(let k=0;k<Math.abs(steps);k++){G.pos[pi]=(G.pos[pi]+dir+16)%16;tk.classList.remove("hop");void tk.offsetWidth;tk.classList.add("hop");place(pi);lit(G.pos[pi]);await wait(250)}}
-let pending=null;
 function ask(html,opts){msg(html+`<div class="acts">${opts.map((o,i)=>`<button class="btn ${i?"":"main"}" data-act="${i}">${o[0]}</button>`).join("")}</div>`);pending=opts.map(o=>o[1])}
+/* share between two phones */
+const ME_KEY="ntrip-me";
+let ME=(()=>{try{const v=localStorage.getItem(ME_KEY);return v===null?"both":v}catch(e){return "both"}})();
+const BOARDV=document.title.includes("桌遊");
+const SHARE_BASE=location.hostname.endsWith("github.io")?location.origin+location.pathname:"https://cclee0210.github.io/newyear-trip/europe/"+(BOARDV?"boardgame.html":"");
+const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
+function renderWho(){$("whoami").innerHTML=`這支手機是：${[["0","老婆"],["1","老公"],["both","兩人一起用"]].map(([v,l])=>`<button class="chip" data-me="${v}" aria-pressed="${ME==v}">${l}</button>`).join("")}`}
+renderWho();
+function shareRow(){if(ME==="both"||G.over||!G.plan)return "";const nx=PL[G.turn].n,url=SHARE_BASE+"#dice="+enc(G),t=`輪到你擲骰子了！跨年大富翁戰況：老婆 €${G.bal[0]}、老公 €${G.bal[1]}，點這裡接著玩 ${url}`;return `<div class="acts"><a class="btn main" href="https://line.me/R/share?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">把棋局傳給${nx}（LINE）</a><button class="btn" data-copylink="${url}">複製棋局連結</button></div>`}
+function gate(showWait){const rb=$("rollbtn");if(!rb)return;const mine=ME==="both"||+ME===G.turn;rb.disabled=!mine||G.over||!G.plan;rb.style.opacity=rb.disabled?.45:1;if(showWait&&G.plan&&!mine&&!G.over&&!pending)msg(`輪到 <b>${PL[G.turn].n}</b>，等對方擲完把棋局傳回來。${shareRow()}`)}
+function endTurn(extra=""){if(checkOver())return;G.turn=1-G.turn;G.seq=(G.seq||0)+1;render();busy=false;msg((extra?extra+"<br>":"")+`<small>換 ${PL[G.turn].n} 擲骰子</small>`+shareRow())}
+function loadShared(s){try{const inc=dec(s);if(!inc||!inc.bal)return;if(G.plan===inc.plan&&(inc.seq||0)<(G.seq||0)&&!G.over){msg("這是比較舊的棋局連結，已保留手機上較新的戰況。");return}G=Object.assign(NEW(),inc);pending=null;busy=false;roll.bailAsked=false;save();setTimeout(()=>{buildRing();render();gate(true);msg(`收到最新棋局！老婆 €${G.bal[0]}、老公 €${G.bal[1]}、旅費罐 €${G.pot}<br>輪到 <b>${PL[G.turn].n}</b>`+(ME!=="both"&&+ME!==G.turn?"，等對方擲完傳回來。":"，換你擲骰子！"))},60)}catch(e){msg("棋局連結壞掉了，請對方重傳一次。")}}
 async function land(pi){
  const o=1-pi,me=PL[pi].n,t=CELLS[G.pos[pi]];
- if(PLANS.some(p=>p.id==t)){const p=PLANS.find(x=>x.id==t),w=G.own[t],view=`<button class="linkbtn" data-p="${t}">看方案 ${p.k} 地契</button>`;
-  if(w==null){if(G.bal[pi]>=PRICE)return ask(`停在方案 ${p.k}：${p.name}<br>要花 ${eur(PRICE)} 買下嗎？之後對方停到要付你 ${eur(RENT)} 過路費。${view}`,[[`買下 ${eur(PRICE)}`,()=>{pay(pi,"pot",PRICE);G.own[t]=pi;endTurn(`${me}買下方案 ${p.k}！錢進旅費罐。`)}],["不買",()=>endTurn(`${me}路過方案 ${p.k}。`)]]);return endTurn(`停在方案 ${p.k}，但錢不夠買。${view}`)}
-  if(w==pi)return endTurn(`回到自己的方案 ${p.k}，休息一下。${view}`);
-  pay(pi,w,RENT);return endTurn(`停在${PL[w].n}的方案 ${p.k}！付過路費 ${eur(RENT)} 給${PL[w].n}。`)}
+ if(t[0]=="p"&&t!="go"&&!EVT[t]){const [nm]=spot(t),pr=PRICES[+t.slice(1)],rent=Math.ceil(pr/2),w=G.own[t];
+  if(w==null){if(G.bal[pi]>=pr)return ask(`停在「${nm}」<br>要花 ${eur(pr)} 買下嗎？之後對方停到要付你 ${eur(rent)} 過路費。`,[[`買下 ${eur(pr)}`,()=>{pay(pi,"pot",pr);G.own[t]=pi;endTurn(`${me}買下「${nm}」！錢進旅費罐。`)}],["不買",()=>endTurn(`${me}路過「${nm}」。`)]]);return endTurn(`停在「${nm}」，但錢不夠買。`)}
+  if(w==pi)return endTurn(`回到自己的「${nm}」，休息一下。`);
+  pay(pi,w,rent);return endTurn(`停在${PL[w].n}的「${nm}」！付過路費 ${eur(rent)} 給${PL[w].n}。`)}
  if(t=="go"){const v=pay("pot",pi,5);return endTurn(`剛好停在起點！從旅費罐領 ${eur(v)}。`)}
  if(t=="fine"){const task=pick(FINES);return ask(`<b>罰錢！</b>二選一：做任務「${task}」，或付 ${eur(5)} 給${PL[o].n}。`,[["做任務",()=>endTurn(`${me}完成任務：${task}`)],[`付 ${eur(5)}`,()=>{pay(pi,o,5);endTurn(`${me}付 ${eur(5)} 給${PL[o].n}。`)}]])}
  if(t=="tax"){const task=pick(TAXES);return ask(`<b>觀光稅！</b>二選一：做任務「${task}」，或付 ${eur(3)} 進旅費罐。`,[["做任務",()=>endTurn(`${me}完成任務：${task}`)],[`付 ${eur(3)}`,()=>{pay(pi,"pot",3);endTurn(`${me}繳了 ${eur(3)} 觀光稅。`)}]])}
@@ -686,7 +722,7 @@ async function land(pi){
  if(t=="fate"){const [tx,k,v]=pick(FATES);if(k=="pot")pay(pi,"pot",-v);else if(k=="opp"){v>0?pay(o,pi,v):pay(pi,o,-v)}else if(k=="potget")pay("pot",pi,v);return endTurn(`<b>命運：</b>${tx}`)}
  if(t=="chance"){const [tx,k,v]=pick(CHANCES);msg(`<b>機會：</b>${tx}`);await wait(900);
   if(k=="move"){await walk(pi,v);return land(pi)}
-  if(k=="plan"){let s=0;do{s++}while(!PLANS.some(p=>p.id==CELLS[(G.pos[pi]+s)%16]));await walk(pi,s);return land(pi)}
+  if(k=="spot"){let s=0;do{s++}while(CELLS[(G.pos[pi]+s)%16][0]!="p");await walk(pi,s);return land(pi)}
   if(k=="card"){G.card[pi]=true;return endTurn(`<b>機會：</b>${me}拿到出獄卡！`)}
   if(k=="opp"){v>0?pay(o,pi,v):pay(pi,o,-v);return endTurn(`<b>機會：</b>${tx}`)}
   return endTurn(`<b>機會：</b>${tx}`)}
@@ -694,7 +730,7 @@ async function land(pi){
  endTurn("");
 }
 async function roll(){
- if(busy||pending)return;if(G.over){msg(`遊戲已結束。${settleText()}<br>按「重新開局」再玩一次。`);return}
+ if(busy||pending||!G.plan)return;if(G.over){msg(`遊戲已結束。${settleText()}<br>按「重新開局」再玩一次。`);return}
  busy=true;const pi=G.turn,o=1-pi;
  if(G.jail[pi]&&G.bal[pi]>=5&&!roll.bailAsked){roll.bailAsked=true;busy=false;return ask(`${PL[pi].n}在坐牢中。要付 ${eur(5)} 保釋金給${PL[o].n}直接出獄，還是擲骰子拼對子？`,[[`付 ${eur(5)} 保釋`,()=>{pay(pi,o,5);G.jail[pi]=0;render();roll.bailAsked=false;roll()}],["拼對子",()=>{roll.bailAsked="go";roll()}]])}
  roll.bailAsked=false;
@@ -709,28 +745,14 @@ async function roll(){
 }
 document.addEventListener("click",e=>{
  const a=e.target.closest("[data-act]");if(a&&pending){const fn=pending[+a.dataset.act];pending=null;fn();return}
- if(e.target.closest("#newgame")){G=Object.assign(NEW(),{seq:(G.seq||0)+1});pending=null;busy=false;roll.bailAsked=false;render();msg("新的一局！老婆、老公各出 €100。<br>老婆先擲！");return}
+ const sp=e.target.closest("[data-setplan]");if(sp){setPlan(sp.dataset.setplan);if(sp.dataset.golater)go("dice");return}
+ if(e.target.closest("[data-chg]")){$("planpick").innerHTML=`<div class="chips" style="justify-content:center">${PLANS.map(x=>`<button class="chip" data-setplan="${x.id}" aria-pressed="${x.id==G.plan}">方案 ${x.k}</button>`).join("")}</div><p class="hint">換路線會重新開局。</p>`;return}
+ const m=e.target.closest("[data-me]");if(m){ME=m.dataset.me;try{localStorage.setItem(ME_KEY,ME)}catch(x){}renderWho();gate(true);return}
+ const cl=e.target.closest("[data-copylink]");if(cl){navigator.clipboard.writeText(cl.dataset.copylink).then(()=>{cl.textContent="已複製！"}).catch(()=>{cl.textContent="請手動複製網址"});return}
+ if(e.target.closest("#newgame")){const p=G.plan;G=NEW(p);G.seq=Date.now()%100000;pending=null;busy=false;roll.bailAsked=false;buildRing();render();msg(p?"新的一局！老婆、老公各出 €100。<br>老婆先擲！":"先選定路線再開局。");return}
  if(e.target.closest("#settle")){msg(`<b>目前戰況</b><br>${settleText()}`);return}
 });
-
-
-/* ---------- play on two phones: pass the game by link ---------- */
-const ME_KEY="ntrip-me";
-let ME=(()=>{try{const v=localStorage.getItem(ME_KEY);return v===null?"both":v}catch(e){return "both"}})();
-const BOARDV=document.title.includes("桌遊");
-const SHARE_BASE=location.hostname.endsWith("github.io")?location.origin+location.pathname:"https://cclee0210.github.io/newyear-trip/europe/"+(BOARDV?"boardgame.html":"");
-const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
-function renderWho(){$("whoami").innerHTML=`這支手機是：${[["0","老婆"],["1","老公"],["both","兩人一起用"]].map(([v,l])=>`<button class="chip" data-me="${v}" aria-pressed="${ME==v}">${l}</button>`).join("")}`}
-renderWho();
-document.addEventListener("click",e=>{const b=e.target.closest("[data-me]");if(!b)return;ME=b.dataset.me;try{localStorage.setItem(ME_KEY,ME)}catch(x){}renderWho();gate(true)});
-function shareRow(){if(ME==="both"||G.over)return "";const nx=PL[G.turn].n,url=SHARE_BASE+"#dice="+enc(G),t=`輪到你擲骰子了！跨年大富翁戰況：老婆 €${G.bal[0]}、老公 €${G.bal[1]}，點這裡接著玩 ${url}`;return `<div class="acts"><a class="btn main" href="https://line.me/R/share?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">把棋局傳給${nx}（LINE）</a><button class="btn" data-copylink="${url}">複製棋局連結</button></div>`}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-copylink]");if(!b)return;navigator.clipboard.writeText(b.dataset.copylink).then(()=>{b.textContent="已複製！"}).catch(()=>{b.textContent="請手動複製網址"})});
-function gate(showWait){const rb=$("rollbtn");if(!rb)return;const mine=ME==="both"||+ME===G.turn;rb.disabled=!mine||G.over;rb.style.opacity=rb.disabled?.45:1;if(showWait&&!mine&&!G.over&&!pending){msg(`輪到 <b>${PL[G.turn].n}</b>，等對方擲完把棋局傳回來。${shareRow()}`)}}
-const _endTurn=endTurn;
-endTurn=function(extra=""){_endTurn(extra);if(!G.over){G.seq=(G.seq||0)+1;save();if(ME!=="both")msg($("rollmsg").innerHTML+shareRow());gate()}};
-const _render=render;render=function(){_render();gate()};
-function loadShared(s){try{const inc=dec(s);if(!inc||!inc.bal)return false;if((inc.seq||0)<(G.seq||0)&&!G.over){msg("這是比較舊的棋局連結，已保留手機上較新的戰況。");return true}G=Object.assign(NEW(),inc);pending=null;busy=false;roll.bailAsked=false;save();setTimeout(()=>{render();gate(true);msg(`收到最新棋局！老婆 €${G.bal[0]}、老公 €${G.bal[1]}、旅費罐 €${G.pot}<br>輪到 <b>${PL[G.turn].n}</b>`+(ME!=="both"&&+ME!==G.turn?"，等對方擲完傳回來。":"，換你擲骰子！"))},60);return true}catch(e){msg("棋局連結壞掉了，請對方重傳一次。");return true}}
+buildRing();
 
 /* ---------- title deed ---------- */
 function show(id,why){
@@ -746,7 +768,7 @@ function show(id,why){
  <details class="more"><summary>每天怎麼走</summary><div class="in"><dl class="days" style="margin-top:12px">${p.d.map((x,i)=>`<dt>${DAYS[i]}</dt><dd>${sw(p.r[i])}${x}</dd>${p.x&&p.x[i]?`<dd class="sub2"><ul>${p.x[i].map(y=>`<li>${y}</li>`).join("")}</ul></dd>`:""}`).join("")}</dl></div></details>
  <details class="more"><summary>選這條要先注意</summary><div class="in"><div class="warn" style="margin-top:12px"><ul>${p.risk.map(x=>`<li>${x}</li>`).join("")}</ul></div></div></details>
  <details class="more"><summary>錢花在哪（兩人）</summary><div class="in"><table class="mini" style="margin-top:8px">${rows}<tr class="tot"><td>兩人預算合計</td><td>${f(p.lo)}–${f(p.hi)}</td></tr></table><p class="est">＊為估算，說明在「四條路線 → 銀行帳本」。</p></div></details>
- <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製「我選方案 ${p.k}」傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-go="games">旅途小遊戲</button><button class="btn" data-go="fb">寫意見給老婆</button><button class="btn" data-go="quiz">重新抽卡</button><button class="btn" data-go="routes">看其他路線</button></div>
+ <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製「我選方案 ${p.k}」傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-setplan="${p.id}" data-golater="dice">就選這條！變成大富翁</button><button class="btn" data-go="games">旅途小遊戲</button><button class="btn" data-go="fb">寫意見給老婆</button><button class="btn" data-go="quiz">重新抽卡</button><button class="btn" data-go="routes">看其他路線</button></div>
  <div class="pets" id="deedpets"></div>`;
  pets($("deedpets"),{a:"雪地打滾！汪汪！",b:"巴黎！我要跟！",c:"煙火好漂亮！汪！",d:"布魯塞爾有鬆餅！"}[id],{a:"記得幫本喵買毛毯。",b:"住三晚，不錯。",c:"…還可以。",d:"省錢，本喵認可。"}[id]);
  go("plan-"+id);
