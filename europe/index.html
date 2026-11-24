@@ -424,7 +424,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <button class="btn" data-setplan="c" data-golater="dice">玩方案 C 大富翁</button>
 <button class="btn" data-go="games">旅途小遊戲</button>
 <button class="btn" data-go="fb">寫意見給老婆</button>
-<button class="linkbtn" data-go="routes">回顧當初四條路線的比較</button>
+<button class="linkbtn" data-go="routes">看方案 C 路線與預算</button>
 </div>
 <div class="pets" data-dog="汪！一起去跨年！" data-cat="本喵負責顧家。"></div>
 </div>
@@ -471,30 +471,30 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 
 <section class="view" id="v-routes">
 <div class="wide">
-<div class="routes-h"><div><h2>四條路線</h2><p class="sub" style="margin:4px 0 0">點任一條路線看它的地契。每格是一天。</p></div><button class="btn main" data-go="quiz">抽機會卡幫我選</button></div>
+<div class="routes-h"><div><h2>我們的路線：方案 C</h2><p class="sub" style="margin:4px 0 0">點路線看行程票根。每格是一天。</p></div><button class="btn main" data-p="c">看方案 C 行程票根</button></div>
 <div class="board" id="board">
 <div class="dates"><span></span><div class="tiles" id="dates"></div></div>
 </div>
 <div class="legend" id="legend"></div>
 <p class="note">綠色鈔票條是兩人預算區間（台幣，含台灣往返機票與估算項目，非已確認的付款總價）。</p>
-<details class="more"><summary>銀行帳本：四條路線的預算明細</summary><div class="in">
-<p class="sub" style="margin-top:12px">機票都用實際報價 × 2 人，四案餐飲同一標準。A 與 D 最省且接近，B、C 約貴 NT$1.6–1.9 萬。</p>
+<details class="more"><summary>銀行帳本：方案 C 的預算明細</summary><div class="in">
+<p class="sub" style="margin-top:12px">機票都用實際報價 × 2 人，其餘為估算。</p>
 <div class="scroll"><table class="ledger">
-<thead><tr><th>項目（兩人）</th><th class="n">A 冰島</th><th class="n">B 巴黎3晚</th><th class="n">C 巴黎2+1</th><th class="n">D 布魯塞爾</th></tr></thead>
+<thead><tr><th>項目（兩人）</th><th class="n">方案 C</th></tr></thead>
 <tbody id="cost"></tbody>
 </table></div>
-<p class="est">＊估算。餐飲標準：冰島、Tromsø 兩人每天 NT$3,000–4,500，阿姆斯特丹、巴黎、布魯塞爾兩人每天 NT$2,000–3,500。台灣往返機票每人 NT$20,377（去程 10,206＋回程 10,171），四案相同。歐洲境內機票皆為實際日期單人報價 × 2：A NT$14,587、B 與 C NT$22,000、D NT$18,339。C 巴黎兩晚用三晚均價推估。匯率假設 €1 ≈ NT$37、1 ISK ≈ NT$0.25。</p>
+<p class="est">＊估算。餐飲標準：Tromsø 兩人每天 NT$3,000–4,500，阿姆斯特丹、巴黎、布魯塞爾兩人每天 NT$2,000–3,500。台灣往返機票每人 NT$20,377（去程 10,206＋回程 10,171）。歐洲境內機票為實際日期單人報價 NT$22,000 × 2。巴黎兩晚用三晚均價推估。匯率假設 €1 ≈ NT$37。</p>
 </div></details>
 <details class="more"><summary>體驗與風險，一列看完</summary><div class="in">
-<div class="scroll" style="margin-top:12px"><table class="ledger stack">
-<thead><tr><th>考量</th><th>A 冰島</th><th>B 巴黎3晚</th><th>C 巴黎2+1</th><th>D 布魯塞爾4晚</th></tr></thead>
+<div class="scroll" style="margin-top:12px"><table class="ledger">
+<thead><tr><th>考量</th><th>方案 C</th></tr></thead>
 <tbody id="exp"></tbody>
 </table></div>
 </div></details>
-<details class="more"><summary>命運：不管選哪條，付款前先確認</summary><div class="in">
+<details class="more"><summary>命運：付款前先確認</summary><div class="in">
 <ol class="checks" id="checks"></ol>
 </div></details>
-<div class="pets" data-dog="四條路都想走！" data-cat="選有暖氣的那條。"></div>
+<div class="pets" data-dog="出發囉！汪！" data-cat="記得帶本喵的紀念品。"></div>
 </div>
 </section>
 
@@ -671,16 +671,16 @@ function go(v,push=true){
 
 /* ---------- routes ---------- */
 $("dates").innerHTML=DAYS.map(d=>`<span>${d}</span>`).join("");
-$("legend").innerHTML=Object.keys(P).filter(k=>k!="dly").map(k=>`<span>${sw(k)}${P[k][0]}</span>`).join("");
+$("legend").innerHTML=[...new Set(PLANS.find(p=>p.id=="c").r)].map(k=>`<span>${sw(k)}${P[k][0]}</span>`).join("");
 const MAX=280000,MIN=200000,pct=v=>((v-MIN)/(MAX-MIN)*100).toFixed(1);
-$("board").insertAdjacentHTML("beforeend",PLANS.map(p=>`<button class="track" data-p="${p.id}" aria-label="方案 ${p.k} ${p.name}">
+$("board").insertAdjacentHTML("beforeend",PLANS.filter(p=>p.id=="c").map(p=>`<button class="track" data-p="${p.id}" aria-label="方案 ${p.k} ${p.name}">
 <span class="who"><span class="pawn" style="--k:${TK[p.id]}">${p.k}</span><span><b>${p.name}</b><small>每人 ${per(p)}</small></span></span>
 <span class="tiles">${p.r.map(x=>`<span class="tile" style="--k:${P[x][1]}" title="${P[x][0]}"><b>${icon(x)}${P[x][2]}</b></span>`).join("")}</span>
 <span class="money"><span class="bar"><i style="left:${pct(p.lo)}%;width:${pct(p.hi)-pct(p.lo)}%"></i></span><span>${Math.round(p.lo/1000)}–${Math.round(p.hi/1000)}k</span></span>
 </button>`).join(""));
-$("cost").innerHTML=COST.map(([n,v,t])=>`<tr${t==2?' class="tot"':""}><td>${t?`<b>${n}</b>`:n}</td>${v.map(x=>`<td class="n">${typeof x=="number"?(t?`<b>${f(x)}</b>`:f(x)):x}</td>`).join("")}</tr>`).join("");
-const H=["考量","A 冰島","B 巴黎3晚","C 巴黎2+1","D 布魯塞爾4晚"];
-$("exp").innerHTML=EXP.map(r=>`<tr>${r.map((x,i)=>`<td data-l="${H[i]}">${i?x:`<b>${x}</b>`}</td>`).join("")}</tr>`).join("");
+$("cost").innerHTML=COST.filter(r=>r[1][2]!=="—").map(([n,v,t])=>`<tr${t==2?' class="tot"':""}><td>${t?`<b>${n}</b>`:n}</td>${[v[2]].map(x=>`<td class="n">${typeof x=="number"?(t?`<b>${f(x)}</b>`:f(x)):x}</td>`).join("")}</tr>`).join("");
+const H=["考量","方案 C"];
+$("exp").innerHTML=EXP.map(r=>`<tr>${[r[0],r[3]].map((x,i)=>`<td data-l="${H[i]}">${i?x:`<b>${x}</b>`}</td>`).join("")}</tr>`).join("");
 $("checks").innerHTML=CHECKS.map(x=>`<li>${x}</li>`).join("");
 
 /* ---------- chance cards ---------- */
@@ -880,7 +880,7 @@ function show(id,why){
  <details class="more"><summary>每天怎麼走</summary><div class="in"><dl class="days" style="margin-top:12px">${p.d.map((x,i)=>`<dt>${DAYS[i]}</dt><dd>${sw(p.r[i])}${x}</dd>${p.x&&p.x[i]?`<dd class="sub2"><ul>${p.x[i].map(y=>`<li>${y}</li>`).join("")}</ul></dd>`:""}`).join("")}</dl></div></details>
  <details class="more"><summary>選這條要先注意</summary><div class="in"><div class="warn" style="margin-top:12px"><ul>${p.risk.map(x=>`<li>${x}</li>`).join("")}</ul></div></div></details>
  <details class="more"><summary>錢花在哪（兩人）</summary><div class="in"><table class="mini" style="margin-top:8px">${rows}<tr class="tot"><td>兩人預算合計</td><td>${f(p.lo)}–${f(p.hi)}</td></tr></table><p class="est">＊為估算，說明在「四條路線 → 銀行帳本」。</p></div></details>
- <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製方案 ${p.k} 傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-setplan="${p.id}" data-golater="dice">就選這條！變成大富翁</button><button class="btn" data-go="games">旅途小遊戲</button><button class="btn" data-go="fb">寫意見給老婆</button><button class="btn" data-go="quiz">重新抽卡</button><button class="btn" data-go="routes">看其他路線</button></div>
+ <div class="stack-btns" style="margin-top:20px"><button class="btn main" id="copy">蓋章！複製方案 ${p.k} 傳給老婆</button><span class="hint" id="toast"></span><button class="btn" data-setplan="${p.id}" data-golater="dice">就選這條！變成大富翁</button><button class="btn" data-go="games">旅途小遊戲</button><button class="btn" data-go="fb">寫意見給老婆</button><button class="btn" data-go="routes">看其他路線</button></div>
  <div class="pets" id="deedpets"></div>`;
  pets($("deedpets"),{a:"雪地打滾！汪汪！",b:"巴黎！我要跟！",c:"煙火好漂亮！汪！",d:"布魯塞爾有鬆餅！"}[id],{a:"記得幫本喵買毛毯。",b:"住三晚，不錯。",c:"…還可以。",d:"省錢，本喵認可。"}[id]);
  go("plan-"+id);
