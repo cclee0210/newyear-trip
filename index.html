@@ -112,9 +112,9 @@ footer{text-align:center;font-size:13px;color:var(--mute);margin-top:40px;font-f
 {
 /* 新增國家：在 TRIPS 加一筆，status 用 "open" 並填上 links；空白欄位會自動補在最後 */
 const TRIPS=[
- {ch:"Chapter 01",name:"歐洲極光篇",when:"'26.12.24 — '27.01.04",status:"open",stamp:["EUROPE","跨年"],color:"#e4572e",tape:"",
-  route:[["阿姆斯特丹","#f7941d"],["冰島","#6cc6ee"],["Tromsø","#1fb25a"],["巴黎","#d93a96"],["布魯塞爾","#d9a514"]],
-  note:"四條路線：冰島自駕，或挪威追極光＋迪士尼跨年。",
+ {ch:"Chapter 01",name:"歐洲極光篇",when:"'26.12.24 — '27.01.04",status:"open",stamp:["DECIDED","方案C"],color:"#e4572e",tape:"",
+  route:[["阿姆斯特丹","#f7941d"],["Tromsø","#1fb25a"],["巴黎","#d93a96"],["迪士尼","#e2322b"],["布魯塞爾","#d9a514"]],
+  note:"定案！方案 C：挪威追極光＋巴黎 2 晚＋迪士尼跨年＋布魯塞爾。",
   links:[["打開歐洲極光篇","europe/","main"]]}
 ];
 const BLANKS=2;
@@ -141,7 +141,7 @@ document.getElementById("grid").innerHTML=TRIPS.map((t,i)=>`<article class="page
  document.getElementById("grat").innerHTML=g+`<line x1="0" y1="${Y(0)}" x2="960" y2="${Y(0)}" stroke-dasharray="6 6" stroke="rgba(228,87,46,.35)"/>`;
  const dart=(c)=>`<ellipse cx="9" cy="5" rx="9" ry="3" fill="rgba(0,0,0,.28)"/><path d="M0 0L5 -7" stroke="#9aa3ab" stroke-width="2.4" stroke-linecap="round"/><path d="M5 -7L13 -18" stroke="#2b2622" stroke-width="5" stroke-linecap="round"/><path d="M13 -18L20 -27" stroke="#d8dde2" stroke-width="1.6"/><path d="M20 -27l-9 -6 4 10z M20 -27l8 -2 -11 -5z" fill="${c}" stroke="#2b2622" stroke-width=".8" stroke-linejoin="round"/>`;
  const REG=[
-  {n:"歐洲",t:"歐洲極光篇已經寫好了！冰島、極光、巴黎、迪士尼都在裡面。",lo:[-26,40],la:[35,72],link:"europe/"},
+  {n:"歐洲",t:"歐洲極光篇定案了：挪威極光、巴黎、迪士尼跨年、布魯塞爾！",lo:[-26,40],la:[35,72],link:"europe/"},
   {n:"北極圈",t:"永夜和極光的地方，跨年再來一次？",la:[66,90]},
   {n:"中美洲・加勒比海",t:"海島、古文明，還有很多海龜。",lo:[-118,-59],la:[7,25]},
   {n:"格陵蘭",t:"冰河、冰山，比冰島還冰。",lo:[-75,-10],la:[59,84]},

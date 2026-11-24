@@ -401,6 +401,11 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .bgrp{margin:6px 0}.bgrp small{display:block;color:var(--mute);font-size:13px;margin-bottom:4px}
 @media(max-width:600px){.pigrow{grid-template-columns:80px minmax(0,1fr)}.rkv{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.pig .coin{animation:none}}
+
+.decided{position:relative;max-width:440px;margin:10px auto 18px;background:#fff;padding:16px 18px 14px;box-shadow:0 8px 16px rgba(60,40,10,.16);transform:rotate(-1deg)}
+.decided b{display:block;font-size:24px;color:var(--red)}
+.decided span:not(.tape){display:block;font-size:17px;font-weight:700;margin-top:2px}
+.decided small{display:block;color:var(--mute);font-size:13px;margin-top:6px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -410,16 +415,16 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 
 <section class="view start center" id="v-start">
 <div class="narrow">
-<div class="corners"><div class="collage" id="collage" role="img" aria-label="冰島、Tromsø、巴黎、布魯塞爾四張拍立得拼貼"></div></div>
+<div class="corners"><div class="collage" id="collage" role="img" aria-label="Tromsø、巴黎、迪士尼、布魯塞爾四張拍立得拼貼"></div></div>
 <p class="mk" style="margin:4px 0 0;font-size:20px;color:var(--red)">歐洲極光篇 · New Year Trip Vlog 2026→2027</p>
-<h1 class="title" id="title" aria-label="我們跨年走哪條路？"></h1>
-<p class="lede">12/24 出發、1/4 回台灣，四條路線。抽三張機會卡，棋子就會走到最適合我們的那條。</p>
+<h1 class="title" id="title" aria-label="決定了！走方案 C"></h1>
+<div class="decided"><span class="tape t"></span><b>老公選了方案 C！</b><span>挪威追極光＋巴黎 2 晚＋迪士尼跨年＋布魯塞爾</span><small>12/24 出發 · Tromsø 12/26–28 · 巴黎 12/29–30 · 迪士尼 12/31 · 布魯塞爾 1/1–3 · 1/4 回台灣</small></div>
 <div class="stack-btns">
-<button class="btn main" data-go="quiz">開始抽機會卡</button>
-<button class="btn" data-go="dice">擲骰子，交給運氣</button>
-<button class="btn" data-go="routes">先看四條路線</button>
+<button class="btn main" data-p="c">看方案 C 行程票根</button>
+<button class="btn" data-setplan="c" data-golater="dice">玩方案 C 大富翁</button>
 <button class="btn" data-go="games">旅途小遊戲</button>
 <button class="btn" data-go="fb">寫意見給老婆</button>
+<button class="linkbtn" data-go="routes">回顧當初四條路線的比較</button>
 </div>
 <div class="pets" data-dog="汪！一起去跨年！" data-cat="本喵負責顧家。"></div>
 </div>
@@ -718,7 +723,7 @@ const RING=[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4
 const CELLS=["go","p0","fine","p1","jail","p2","chance","p3","rest","p4","fate","p5","tojail","p6","tax","p7"];
 const EVT={go:["起點","GO"],fine:["罰錢","FINE"],jail:["坐牢","JAIL"],chance:["機會","?"],rest:["休息站","拿走罐子"],fate:["命運","!"],tojail:["去坐牢","GO TO JAIL"],tax:["觀光稅","TAX"]};
 const PRICES=[6,6,8,8,10,10,12,14];
-const BOARDS=[...PLANS.map(p=>({id:p.id,k:"方案 "+p.k,name:p.name,grp:"歐洲極光篇"})),{id:"daily",k:"日常篇",name:"日常篇",grp:"平常"}];
+const BOARDS=[...PLANS.map(p=>({id:p.id,k:"方案 "+p.k,name:p.name,grp:"歐洲極光篇",hide:p.id!="c"})),{id:"daily",k:"日常篇",name:"日常篇",grp:"平常"}];
 const bd=id=>BOARDS.find(x=>x.id==id);
 const STOPS={
  a:[["阿姆斯特丹","ams"],["Eyrarbakki","ice"],["黃金圈","ice"],["塞里雅蘭瀑布","ice"],["黑沙灘","ice"],["藍冰洞","ice"],["冰河湖","ice"],["雷克雅維克","ice"]],
@@ -750,7 +755,7 @@ function buildRing(){
 }
 function place(pi){const c=$("rc"+G.pos[pi]),tk=$("tk"+pi);if(!c||!tk)return;const off=(pi?1:-1)*(c.offsetWidth*.18);tk.style.transform=`translate(${c.offsetLeft+c.offsetWidth/2-tk.offsetWidth/2+off}px,${c.offsetTop+c.offsetHeight/2-tk.offsetHeight/2}px)`}
 function lit(i){document.querySelectorAll(".rc").forEach(x=>x.classList.remove("lit"));const c=$("rc"+i);c&&c.classList.add("lit")}
-const boardChips=()=>["歐洲極光篇","平常"].map(g=>`<div class="bgrp"><small>${g}</small><div class="chips" style="justify-content:center">${BOARDS.filter(b=>b.grp==g).map(b=>`<button class="chip" data-setplan="${b.id}" aria-pressed="${b.id==G.plan}">${b.k}${b.id=="daily"?"":" "+b.name.split("＋")[0]}</button>`).join("")}</div></div>`).join("");
+const boardChips=()=>["歐洲極光篇","平常"].map(g=>`<div class="bgrp"><small>${g}</small><div class="chips" style="justify-content:center">${BOARDS.filter(b=>b.grp==g&&!b.hide).map(b=>`<button class="chip" data-setplan="${b.id}" aria-pressed="${b.id==G.plan}">${b.k}${b.id=="daily"?"":" "+b.name.split("＋")[0]}</button>`).join("")}</div></div>`).join("");
 function renderPick(){const p=bd(G.plan);$("dicetitle").textContent=p?`${p.name}・大富翁`:"旅行大富翁・雙人對戰";$("planpick").innerHTML=p?`<span>目前棋盤：<b>${p.k}</b></span><button class="linkbtn" data-chg="1">換棋盤</button>`:`<p><b>先選棋盤</b>：旅行的路線，或平常的日常篇</p>${boardChips()}`;$("ring").hidden=!p;$("bank").hidden=!p;renderPiggy()}
 function render(){
  renderPick();
@@ -867,7 +872,7 @@ function show(id,why){
  const rows=COST.slice(0,-1).filter(r=>r[1][ci]!=="—").map(r=>`<tr${r[2]?' class="tot"':""}><td>${r[0]}</td><td>${typeof r[1][ci]=="number"?f(r[1][ci]):r[1][ci]}</td></tr>`).join("");
  const stops=p.r.slice(0,9).filter((x,i,a)=>x!=a[i-1]);
  $("res").innerHTML=`${why?`<div class="center"><span class="tag">${why}</span></div>`:""}
- <div class="deed" style="--k:${TK[p.id]}"><span class="tape y l"></span><div class="top ccd"><small>TRIP TICKET · PLAN ${p.k}</small><span class="nm">${p.name}</span><span class="datestamp">'26 12 24</span></div><span class="stampx" id="stamp"><span><b>成交</b>APPROVED</span></span><div class="bd">
+ ${p.id=="c"?`<div class="center"><span class="tag" style="background:#e4572e">定案！老公選的路線</span></div>`:`<div class="center"><span class="tag" style="background:#6f655b">備選方案（最後選了 C）</span></div>`}<div class="deed" style="--k:${TK[p.id]}"><span class="tape y l"></span><div class="top ccd"><small>TRIP TICKET · PLAN ${p.k}</small><span class="nm">${p.name}</span><span class="datestamp">'26 12 24</span></div><span class="stampx" id="stamp"><span><b>成交</b>APPROVED</span></span><div class="bd">
  <table class="rent"><tr class="big"><td>每人預算</td><td>${per(p)}</td></tr><tr><td>兩人合計</td><td>NT$${f(p.lo)}–${f(p.hi)}</td></tr></table>
  <h3>為什麼選它</h3><ul>${p.why.map(x=>`<li>${x}</li>`).join("")}</ul>
  <p class="sum" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${stops.map(x=>`${sw(x)}<span>${P[x][0]}</span>`).join("<span>→</span>")}<span>→ 回台灣</span></p>
@@ -915,8 +920,8 @@ document.addEventListener("click",e=>{
 {
  const pal=[["#e4572e","#fff"],["#fffdf6","#2b2622"],["#f2b134","#2b2622"],["#2b2622","#fff"],["#f4a6b8","#2b2622"],["#2f8f86","#fff"],["#4a78c2","#fff"],["#fff8b8","#2b2622"]];
  let r=5;const rnd=()=>(r=r*16807%2147483647)/2147483647;
- $("title").innerHTML=[..."我們跨年走哪條路？"].map((ch,i)=>{const [bg,fg]=pal[i%pal.length];return `<span aria-hidden="true" style="background:${bg};color:${fg};transform:rotate(${(rnd()*12-6).toFixed(1)}deg) translateY(${(rnd()*6-3).toFixed(0)}px);font-family:${i%3==1?'"Noto Sans TC",sans-serif;font-weight:900':'"LXGW WenKai TC",serif'}">${ch}</span>`}).join("");
- const pols=[["ice","冰島 Iceland","linear-gradient(#8fcbe8,#e6f5fd)",0,0,-7,"'26 12 26"],["tos","Tromsø 極光","linear-gradient(#0b2233,#1d5a52)",.34,150,5,"'26 12 27"],["par","巴黎 Paris","linear-gradient(#f6bfd4,#fff0f5)",.67,8,-4,"'26 12 29"],["bru","布魯塞爾","linear-gradient(#ffd56b,#fff3c8)",1,158,7,"'27 01 01"]];
+ $("title").innerHTML=[..."決定了！走方案C"].map((ch,i)=>{const [bg,fg]=pal[i%pal.length];return `<span aria-hidden="true" style="background:${bg};color:${fg};transform:rotate(${(rnd()*12-6).toFixed(1)}deg) translateY(${(rnd()*6-3).toFixed(0)}px);font-family:${i%3==1?'"Noto Sans TC",sans-serif;font-weight:900':'"LXGW WenKai TC",serif'}">${ch}</span>`}).join("");
+ const pols=[["tos","Tromsø 極光","linear-gradient(#0b2233,#1d5a52)",0,0,-7,"'26 12 26"],["par","巴黎 Paris","linear-gradient(#f6bfd4,#fff0f5)",.34,150,5,"'26 12 29"],["dis","迪士尼跨年","linear-gradient(#2b2f6b,#e86a9a)",.67,8,-4,"'26 12 31"],["bru","布魯塞爾","linear-gradient(#ffd56b,#fff3c8)",1,158,7,"'27 01 01"]];
  const tapes=["","y","t",""];
  $("collage").innerHTML=pols.map(([k,cap,bg,fx,top,rot,dt],i)=>`<div class="pol" style="left:calc((100% - var(--pw,150px))*${fx});top:${top}px;transform:rotate(${rot}deg)"><span class="tape ${tapes[i]}" style="width:70px"></span><div class="ph ccd" style="background:${bg}">${icon(k).replace('class="ic"','class="ic" style="width:84px;height:84px"')}<span class="datestamp">${dt}</span></div><b>${cap}</b></div>`).join("")+
  `<div class="stub">TPE ✈ AMS · 2026.12.24 · 2 PAX</div>`+
@@ -966,8 +971,8 @@ document.addEventListener("click",e=>{
  $("payreset").addEventListener("click",()=>{pay=PAYDEF.slice();renderPay()});
  $("paylist").addEventListener("click",e=>{const b=e.target.closest("[data-payrm]");if(b&&pay.length>2){pay.splice(+b.dataset.payrm,1);renderPay()}});
  /* eat wheel */
- const EAT={"冰島":["冰島熱狗堡","羊肉湯","炸魚薯條","超市自己煮","冰島優格 Skyr","加油站漢堡"],"Tromsø":["帝王蟹","鮭魚奶油湯","馴鹿肉排","北極啤酒館","肉桂捲咖啡","超市自己煮"],"巴黎":["可頌早餐","法式小酒館","可麗餅","甜點店","生蠔白酒","麵包店三明治"],"布魯塞爾":["列日鬆餅","淡菜配薯條","比利時啤酒館","巧克力店","炸薯條","燉牛肉"],"阿姆斯特丹":["荷蘭鬆餅","鯡魚堡","起司店試吃","印尼飯","炸肉丸","運河咖啡"]};
- let city="冰島";
+ const EAT={"Tromsø":["帝王蟹","鮭魚奶油湯","馴鹿肉排","北極啤酒館","肉桂捲咖啡","超市自己煮"],"巴黎":["可頌早餐","法式小酒館","可麗餅","甜點店","生蠔白酒","麵包店三明治"],"布魯塞爾":["列日鬆餅","淡菜配薯條","比利時啤酒館","巧克力店","炸薯條","燉牛肉"],"阿姆斯特丹":["荷蘭鬆餅","鯡魚堡","起司店試吃","印尼飯","炸肉丸","運河咖啡"]};
+ let city="Tromsø";
  const renderEat=()=>{$("eatcity").innerHTML=Object.keys(EAT).map(c=>`<button class="chip" data-city="${c}" aria-pressed="${c==city}">${c}</button>`).join("");drawWheel($("weat"),EAT[city])};
  renderEat();
  $("eatcity").addEventListener("click",e=>{const b=e.target.closest("[data-city]");if(b){city=b.dataset.city;renderEat();$("reat").textContent=`${city}：轉轉看今天吃什麼。`}});
