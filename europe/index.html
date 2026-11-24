@@ -430,13 +430,6 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 </div>
 </section>
 
-<section class="view" id="v-quiz">
-<div class="narrow">
-<div class="dots" id="dots"></div>
-<div id="quiz" aria-live="polite"></div>
-<div class="pets" id="quizpets"></div>
-</div>
-</section>
 
 <section class="view" id="v-walk">
 <div class="narrow">
@@ -547,16 +540,15 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 <section class="view" id="v-fb">
 <div class="narrow">
 <h2 class="center">寫意見給老婆</h2>
-<p class="sub center">每條路線點一個感覺，再寫幾句話，最後按「用 LINE 傳給老婆」。</p>
+<p class="sub center">點一個感覺，再寫幾句話，最後按「用 LINE 傳給老婆」。</p>
 <div class="fbbox">
-<h3>每條路線的感覺</h3>
+<h3>方案 C 的感覺</h3>
 <div id="fbrows"></div>
-<h3>最想走哪條？</h3>
-<div class="chips" id="fbbest"></div>
+<div class="chips" id="fbbest" hidden></div>
 <h3>預算感覺</h3>
 <div class="chips" id="fbbudget"></div>
 <h3><label for="fbtext">想跟老婆說的話</label></h3>
-<textarea id="fbtext" rows="4" placeholder="例如：想多留一天在巴黎、冰島開車我來"></textarea>
+<textarea id="fbtext" rows="4" placeholder="例如：想多留一天在巴黎、極光團我想再加一團"></textarea>
 <div class="stack-btns" style="margin-top:16px">
 <a class="btn main" id="fbline" href="#" target="_blank" rel="noopener">用 LINE 傳給老婆</a>
 <button class="btn" id="fbcopy">複製文字</button>
@@ -572,61 +564,13 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 
 <script>
 {
-const P={dly:["日常","#9b5fc0","日常"],ams:["阿姆斯特丹","#f7941d","阿姆"],ice:["冰島自駕","#6cc6ee","冰島"],tos:["Tromsø 極光","#1fb25a","極光"],par:["巴黎","#d93a96","巴黎"],dis:["迪士尼","#e2322b","樂園"],bru:["布魯塞爾","#f5c518","布魯"],home:["返程","#1f4fa0","回家"]};
-const TK={a:"#4a78c2",b:"#9b5fc0",c:"#e4572e",d:"#d99a1e"};
+const P={"dly":["日常","#9b5fc0","日常"],"ams":["阿姆斯特丹","#f7941d","阿姆"],"tos":["Tromsø 極光","#1fb25a","極光"],"par":["巴黎","#d93a96","巴黎"],"dis":["迪士尼","#e2322b","樂園"],"bru":["布魯塞爾","#f5c518","布魯"],"home":["返程","#1f4fa0","回家"]};
+const TK={c:"#e4572e"};
 const DAYS=["12/25","12/26","12/27","12/28","12/29","12/30","12/31","1/1","1/2","1/3"];
-const PLANS=[
-{id:"a",k:"A",name:"冰島自駕",lo:224261,hi:257911,fix:176811,
- r:["ams","ice","ice","ice","ice","ice","ice","bru","bru","home"],
- d:["阿姆斯特丹","抵達冰島：KEF → Eyrarbakki","黃金圈","南岸長途自駕","藍冰洞重點日：Jökulsárlón → Maddis 2","返回雷克雅維克","雷克雅維克跨年","離開冰島：KEF 07:35 → 布魯塞爾 11:55","布魯塞爾","布魯塞爾返程"],
- x:{1:["12:40 阿姆斯特丹起飛，15:10 抵達冰島，17:00 左右取租車","開往 Eyrarbakki Airbnb 休息","住宿：Eyrarbakki Airbnb（第 1 晚）"],
-  2:["Golden Circle 一日遊","Þingvellir 辛格維利爾國家公園","Geysir／Strokkur 間歇泉","Gullfoss 黃金瀑布","時間允許可加 Kerið 火山口湖","住宿：Eyrarbakki Airbnb（第 2 晚）"],
-  3:["Eyrarbakki → 冰河湖飯店","Seljalandsfoss 塞里雅蘭瀑布","Skógafoss 斯科加瀑布","Reynisfjara 黑沙灘（視時間與路況）","沿 1 號公路前往 Jökulsárlón","住宿：Hótel Jökulsárlón，約 NT$24,000／晚，尚未確認訂妥"],
-  4:["09:30 藍冰洞導覽集合，地點 Jökulsárlón 冰河湖停車場","專業嚮導帶領進入天然藍冰洞","下午看冰河湖、Diamond Beach 鑽石沙灘","之後往西開回 Maddis 2","住宿：Maddis 2 Airbnb，調整為 12/29～12/30 一晚"],
-  5:["Maddis 2 → Reykjavík","視路況參觀 Fjaðrárgljúfur 羽毛峽谷","沿南岸開回雷克雅維克","原先討論 17:00 前還車，省下後續租車、保險和停車費","住市區飯店，預算約 NT$7,000／晚"],
-  6:["市區自由活動：散步、咖啡廳、購物","可考慮賞鯨或泡溫泉","晚上看跨年煙火","跨年結束後前往 KEF 機場，這晚不訂住宿"],
-  7:["07:35 起飛，11:55 抵達布魯塞爾","1/1～1/3 布魯塞爾住兩晚"]},
- why:["冬季自然景觀最豐富，自駕行程彈性大","黃金圈、南岸瀑布、冰河湖、藍冰洞一次走完"],
- risk:["Hótel Jökulsárlón（12/28，約 NT$24,000）尚未確認訂妥，冬季旺季要盡快處理","12/30 已還車，跨年夜從市區到 KEF 機場的交通（巴士或計程車）要先確認","跨年夜不住宿、直接搭 07:35 早班機，體力要評估","機票為實際報價 NT$14,587／人（兩人 29,174），要確認是否含托運行李","總價與 D 接近，但冬季路況、油錢等變數最多","冬天風雪、道路封閉，要預留備案與彈性天數"]},
-{id:"b",k:"B",name:"挪威＋巴黎 3 晚",lo:245584,hi:271584,fix:209584,
- r:["ams","tos","tos","tos","par","par","par","bru","bru","home"],
- d:["阿姆斯特丹","Tromsø 追極光","Tromsø 追極光","Tromsø 追極光","飛巴黎、住巴黎","巴黎市區","迪士尼跨年，回巴黎住","Eurostar 巴黎→布魯塞爾 15:55","布魯塞爾","布魯塞爾返程"],
- why:["巴黎連住三晚，換飯店最少、最輕鬆","巴黎市區與迪士尼跨年都有"],
- risk:["跨年夜離開迪士尼回巴黎市區的交通","若改住 Hôtel Hélios Opéra 可省 NT$3,760，但房間約 13 平方公尺","機票 NT$22,000 是單人價，兩人 44,000；確認是否含托運行李"]},
-{id:"c",k:"C",name:"挪威＋巴黎 2 晚＋迪士尼 1 晚",lo:243891,hi:269891,fix:207891,
- r:["ams","tos","tos","tos","par","par","dis","bru","bru","home"],
- d:["阿姆斯特丹","Tromsø 追極光","Tromsø 追極光","Tromsø 追極光","飛巴黎、住巴黎","巴黎市區","迪士尼跨年，住 Crowne Plaza","Eurostar 巴黎→布魯塞爾 15:55","布魯塞爾","布魯塞爾返程"],
- why:["極光、巴黎市區、迪士尼跨年三者兼得，體驗最完整","跨年夜住樂園附近，不用擠深夜交通回市區"],
- risk:["巴黎兩晚房價還是用三晚均價推估，要拿正式報價","Crowne Plaza 跨年夜深夜接駁是否營運","1/1 從迪士尼到巴黎北站趕 15:55 的車；總價沒有比 B 便宜多少"]},
-{id:"d",k:"D",name:"挪威＋布魯塞爾 4 晚＋迪士尼 1 晚",lo:228073,hi:254073,fix:192073,
- r:["ams","tos","tos","tos","bru","bru","dis","bru","bru","home"],
- d:["阿姆斯特丹","Tromsø 追極光","Tromsø 追極光","Tromsø 追極光","飛布魯塞爾、住布魯塞爾","布魯塞爾市區","07:43 高鐵到巴黎北站，轉 RER 去迪士尼跨年","Eurostar 巴黎→布魯塞爾","布魯塞爾","布魯塞爾返程"],
- why:["總預算與 A 並列最省的一組","不逛巴黎市區、只要迪士尼跨年時最划算"],
- risk:["機票 NT$18,339 是單人價，兩人 36,678；確認是否含托運行李","12/31 清晨搭高鐵再轉 RER；直達迪士尼的車次已售罄","布魯塞爾中途換飯店，行李要搬三次"]}
-];
-const X0=["12/24 18:40 桃園 T2 → 20:25 上海浦東 T1（東航 MU5006），上海過夜","12/25 12:30 浦東 T1 → 17:45 阿姆斯特丹史基浦（東航 MU771）","住宿：阿姆斯特丹 1 晚"];
-const X9=["12:00 布魯塞爾 → 隔天 04:45 北京首都 T3（國航 CA964），建議 09:00–09:30 前到機場","北京轉機 3 小時 35 分，行李直掛；訂票頁提醒可能須出示旅遊文件，台胞證記得帶","1/4 08:20 北京 T3 → 11:40 桃園 T2（國航 CA185）"];
-PLANS.forEach(p=>{p.x=p.x||{};p.x[0]=X0;p.x[9]=X9});
-const COST=[
-["住宿合計",[83493,105460,103767,90461]],
-["台灣往返歐洲機票（兩人）",[40754,40754,40754,40754]],
-["歐洲境內機票（兩人）",[29174,44000,44000,36678]],
-["冰島租車",[23390,"—","—","—"]],
-["Eurostar",["—",7326,7326,12136]],
-["迪士尼門票",["—",12044,12044,12044]],
-["固定／已列小計",[176811,209584,207891,192073],1],
-["極光團",["—","8,000–14,000*","8,000–14,000*","8,000–14,000*"]],
-["藍冰洞導覽",["11,450–15,500*","—","—","—"]],
-["當地交通／油費／停車",["10,000–17,600*","3,000–5,000*","3,000–5,000*","3,000–5,000*"]],
-["餐飲",["26,000–41,000*","23,000–38,000*","23,000–38,000*","23,000–38,000*"]],
-["其他活動",["0–7,000*","2,000–5,000*","2,000–5,000*","2,000–5,000*"]],
-["兩人預算合計",PLANS.map(p=>f(p.lo)+"–"+f(p.hi)),2]];
-const EXP=[["冬季景觀","最豐富；自駕彈性","極光活動為主","極光活動為主","極光活動為主"],["巴黎市區","沒有","有完整時間","有完整時間","幾乎沒有"],["迪士尼跨年","沒有","有；需回巴黎市區","有；住樂園附近","有；住樂園附近"],["換飯店負擔","冰島多點移動","較低","較高","較高"],["跨國交通","冰島航班＋自駕","單程 Eurostar","單程 Eurostar","來回 Eurostar"],["主要風險","風雪、道路封閉","跨年夜離園交通","巴黎兩晚房價未定","機票涵蓋範圍、來回高鐵"]];
-const Q={
-q1:{s:1,t:"這趟旅行，最想要的是什麼？",o:[["冰島的冬季雪景＋自駕","冰川、瀑布、黑沙灘，自己開車走","q1b"],["極光＋迪士尼跨年","去挪威追極光，跨年夜在迪士尼看煙火","q2"]]},
-q1b:{s:2,t:"能接受冰島冬天自駕的風雪、封路風險嗎？",o:[["可以，有備案就好","願意留彈性天數應變","a"],["不太想冒這個險","那改看極光＋迪士尼的方案","q2"]]},
-q2:{s:2,t:"巴黎市區（鐵塔、羅浮宮、街區）一定要逛嗎？",o:[["要，巴黎一定要逛","","q3"],["不用，有迪士尼跨年就好","以布魯塞爾為基地，預算較低","d"]]},
-q3:{s:3,t:"跨年夜願意住迪士尼旁邊、多搬一次行李嗎？",o:[["願意","散場走回飯店最安心，體驗最完整","c"],["不要，巴黎連住三晚比較輕鬆","少換飯店，跨年夜再回市區","b"]]}};
+const PLANS=[{"id":"c","k":"C","name":"挪威＋巴黎 2 晚＋迪士尼 1 晚","lo":243891,"hi":269891,"fix":207891,"r":["ams","tos","tos","tos","par","par","dis","bru","bru","home"],"d":["阿姆斯特丹","Tromsø 追極光","Tromsø 追極光","Tromsø 追極光","飛巴黎、住巴黎","巴黎市區","迪士尼跨年，住 Crowne Plaza","Eurostar 巴黎→布魯塞爾 15:55","布魯塞爾","布魯塞爾返程"],"why":["極光、巴黎市區、迪士尼跨年三者兼得，體驗最完整","跨年夜住樂園附近，不用擠深夜交通回市區"],"risk":["巴黎兩晚房價還是用三晚均價推估，要拿正式報價","Crowne Plaza 跨年夜深夜接駁是否營運","1/1 從迪士尼到巴黎北站趕 15:55 的車；總價沒有比 B 便宜多少"],"x":{"0":["12/24 18:40 桃園 T2 → 20:25 上海浦東 T1（東航 MU5006），上海過夜","12/25 12:30 浦東 T1 → 17:45 阿姆斯特丹史基浦（東航 MU771）","住宿：阿姆斯特丹 1 晚"],"9":["12:00 布魯塞爾 → 隔天 04:45 北京首都 T3（國航 CA964），建議 09:00–09:30 前到機場","北京轉機 3 小時 35 分，行李直掛；訂票頁提醒可能須出示旅遊文件，台胞證記得帶","1/4 08:20 北京 T3 → 11:40 桃園 T2（國航 CA185）"]}}];
+const COST=[["住宿合計",[103767]],["台灣往返歐洲機票（兩人）",[40754]],["歐洲境內機票（兩人）",[44000]],["Eurostar",[7326]],["迪士尼門票",[12044]],["固定／已列小計",[207891],1],["極光團",["8,000–14,000*"]],["當地交通／油費／停車",["3,000–5,000*"]],["餐飲",["23,000–38,000*"]],["其他活動",["2,000–5,000*"]],["兩人預算合計",["243,891–269,891"],2]];
+const EXP=[["冬季景觀","極光活動為主"],["巴黎市區","有完整時間"],["迪士尼跨年","有；住樂園附近"],["換飯店負擔","較高"],["跨國交通","單程 Eurostar"],["主要風險","巴黎兩晚房價未定"]];
+const Q={};
 
 const CHECKS=["12/24 上海浦東過夜（20:25 到、隔天 12:30 飛）：確認東航是否提供中轉住宿；若要出機場住飯店需持台胞證，住宿費目前未列入預算。回程 1/4 在北京轉機，可能須出示旅遊文件，台胞證兩段都要帶。","機票報價都是單人價，訂兩人時總價要乘 2，並確認是否含托運行李。","巴黎 12/29–12/31「兩晚」的實際房價，不能用三晚均價當正式報價。","迪士尼門票 NT$6,022／人是否適用 12/31，以及當晚閉園與跨年活動安排。","Crowne Plaza 跨年夜深夜接駁、1/1 迪士尼到巴黎北站的時間，以及 Eurostar 與住宿的取消條件。"];
 function f(n){return n.toLocaleString("en-US")}
@@ -663,7 +607,6 @@ document.querySelectorAll(".pets[data-dog]").forEach(el=>pets(el,el.dataset.dog,
 function view(v){document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id=="v-"+v));window.scrollTo({top:0,behavior:RM?"auto":"smooth"})}
 function go(v,push=true){
  if(busy&&v!="start")return;
- if(v=="quiz"){path=["q1"];quiz()}
  if(v=="dice")resetRing();
  view(v.startsWith("plan-")?"plan":v);
  if(push)try{history.replaceState(null,"","#"+v)}catch(e){}
@@ -678,14 +621,13 @@ $("board").insertAdjacentHTML("beforeend",PLANS.filter(p=>p.id=="c").map(p=>`<bu
 <span class="tiles">${p.r.map(x=>`<span class="tile" style="--k:${P[x][1]}" title="${P[x][0]}"><b>${icon(x)}${P[x][2]}</b></span>`).join("")}</span>
 <span class="money"><span class="bar"><i style="left:${pct(p.lo)}%;width:${pct(p.hi)-pct(p.lo)}%"></i></span><span>${Math.round(p.lo/1000)}–${Math.round(p.hi/1000)}k</span></span>
 </button>`).join(""));
-$("cost").innerHTML=COST.filter(r=>r[1][2]!=="—").map(([n,v,t])=>`<tr${t==2?' class="tot"':""}><td>${t?`<b>${n}</b>`:n}</td>${[v[2]].map(x=>`<td class="n">${typeof x=="number"?(t?`<b>${f(x)}</b>`:f(x)):x}</td>`).join("")}</tr>`).join("");
+$("cost").innerHTML=COST.map(([n,v,t])=>`<tr${t==2?' class="tot"':""}><td>${t?`<b>${n}</b>`:n}</td>${v.map(x=>`<td class="n">${typeof x=="number"?(t?`<b>${f(x)}</b>`:f(x)):x}</td>`).join("")}</tr>`).join("");
 const H=["考量","方案 C"];
-$("exp").innerHTML=EXP.map(r=>`<tr>${[r[0],r[3]].map((x,i)=>`<td data-l="${H[i]}">${i?x:`<b>${x}</b>`}</td>`).join("")}</tr>`).join("");
+$("exp").innerHTML=EXP.map(r=>`<tr>${r.map((x,i)=>`<td data-l="${H[i]}">${i?x:`<b>${x}</b>`}</td>`).join("")}</tr>`).join("");
 $("checks").innerHTML=CHECKS.map(x=>`<li>${x}</li>`).join("");
 
 /* ---------- chance cards ---------- */
-const QL={q1:["這題哥哥選！汪～","選暖和的。"],q1b:["雪地可以打滾！","冰島很冷喔，本喵提醒。"],q2:["巴黎有好吃的嗎？","本喵想要可頌。"],q3:["行李我幫忙叼！","多搬一次行李？本喵不搬。"]};
-function quiz(){
+function quiz(){if(!$("quiz"))return;
  const last=path[path.length-1],q=Q[last];
  const total=path.includes("q1b")?4:3,n=path.length;
  $("dots").innerHTML=[...Array(total)].map((_,i)=>`<i class="${i<n?"done":""}"></i>`).join("");
@@ -694,7 +636,7 @@ function quiz(){
  <div class="face back card chance"><span class="tape l"></span><span class="tape t r"></span><div class="hd">CHANCE 機會<span class="mark">?</span></div><div class="bd"><div class="step">第 ${n} 張</div><div class="q">${q.t}</div>`+
   q.o.map((o,i)=>`<button class="opt" data-i="${i}" tabindex="-1">${o[0]}${o[1]?`<small>${o[1]}</small>`:""}</button>`).join("")+
   `<div class="btns">${n>1?'<button class="btn" id="back" tabindex="-1">← 上一張</button>':""}</div></div></div></div></div>`;
- pets($("quizpets"),...QL[last]);
+ 
 }
 function openCard(){$("flip").classList.add("open");$("front").tabIndex=-1;document.querySelectorAll("#flip .back button").forEach(b=>b.tabIndex=0);setTimeout(()=>{const o=document.querySelector("#flip .opt");o&&o.focus({preventScroll:true})},RM?0:600)}
 
@@ -726,10 +668,7 @@ const PRICES=[6,6,8,8,10,10,12,14];
 const BOARDS=[...PLANS.map(p=>({id:p.id,k:"方案 "+p.k,name:p.name,grp:"歐洲極光篇",hide:p.id!="c"})),{id:"daily",k:"日常篇",name:"日常篇",grp:"平常"}];
 const bd=id=>BOARDS.find(x=>x.id==id);
 const STOPS={
- a:[["阿姆斯特丹","ams"],["Eyrarbakki","ice"],["黃金圈","ice"],["塞里雅蘭瀑布","ice"],["黑沙灘","ice"],["藍冰洞","ice"],["冰河湖","ice"],["雷克雅維克","ice"]],
- b:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["巴黎鐵塔","par"],["羅浮宮","par"],["迪士尼樂園","dis"],["Eurostar","bru"],["布魯塞爾","bru"]],
  c:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["巴黎市區","par"],["蒙馬特","par"],["迪士尼樂園","dis"],["Crowne Plaza","dis"],["布魯塞爾","bru"]],
- d:[["阿姆斯特丹","ams"],["Tromsø","tos"],["極光團","tos"],["布魯塞爾大廣場","bru"],["尿尿小童","bru"],["鬆餅店","bru"],["迪士尼樂園","dis"],["Eurostar","bru"]],
  daily:[["早餐店","dly"],["帶毛狗散步","dly"],["全聯","dly"],["手搖飲","dly"],["夜市","dly"],["電影院","dly"],["IKEA","dly"],["溫泉旅館","dly"]]};
 const PL=[{n:"老婆",c:"#ff6b5b",vb:"4 0 28 52"},{n:"老公",c:"#3a6fd8",vb:"28 0 28 52"}];
 const FINES=["用三種語言說「我好冷」","幫對方拍一張他指定姿勢的照片","學企鵝走路 10 步","對著鏡頭唱一句跨年歌","模仿賓狗的臭臉 5 秒","用超浮誇的語氣誇對方今天的穿搭"];
@@ -740,6 +679,7 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const NEW=(plan)=>({plan:plan||null,pos:[0,0],bal:[100,100],pot:0,own:{},jail:[0,0],card:[false,false],turn:0,over:false,seq:0,piggy:[0,0],hist:[]});
 const carry=(o,n)=>{n.piggy=(o&&o.piggy)||[0,0];n.hist=(o&&o.hist)||[];return n};
 let G=(()=>{try{const g=JSON.parse(localStorage.getItem("ntrip-mono"));return g&&g.bal?Object.assign(NEW(),g):NEW()}catch(e){return NEW()}})();
+if(G.plan&&!STOPS[G.plan])G=carry(G,NEW(null));
 const save=()=>{try{localStorage.setItem("ntrip-mono",JSON.stringify(G))}catch(e){}if(typeof push=="function"&&!save.quiet)push()};
 const CURK=()=>G&&G.plan==="daily"?{s:"NT$",k:10}:{s:"€",k:1};
 const eur=v=>{const c=CURK();return `${c.s}${(v*c.k).toLocaleString("en-US")}`};
@@ -868,7 +808,7 @@ document.addEventListener("click",e=>{
 
 /* ---------- title deed ---------- */
 function show(id,why){
- cur=id;const p=PLANS.find(x=>x.id==id),ci="abcd".indexOf(id);
+ cur=id;const p=PLANS.find(x=>x.id==id),ci=0;
  const rows=COST.slice(0,-1).filter(r=>r[1][ci]!=="—").map(r=>`<tr${r[2]?' class="tot"':""}><td>${r[0]}</td><td>${typeof r[1][ci]=="number"?f(r[1][ci]):r[1][ci]}</td></tr>`).join("");
  const stops=p.r.slice(0,9).filter((x,i,a)=>x!=a[i-1]);
  $("res").innerHTML=`${why?`<div class="center"><span class="tag">${why}</span></div>`:""}
@@ -938,7 +878,7 @@ document.addEventListener("click",e=>{
  $("fbrows").innerHTML=PLANS.map(p=>`<div class="fbrow"><b>${p.k}｜${p.name}</b><span class="chips">${R.map(r=>`<button class="chip" data-fk="rate" data-fp="${p.id}" data-v="${r}" aria-pressed="false">${r}</button>`).join("")}</span></div>`).join("");
  $("fbbest").innerHTML=PLANS.map(p=>`<button class="chip" data-fk="best" data-v="${p.id}" aria-pressed="false">方案 ${p.k}</button>`).join("");
  $("fbbudget").innerHTML=BG.map(v=>`<button class="chip" data-fk="budget" data-v="${v}" aria-pressed="false">${v}</button>`).join("");
- const txt=()=>{const L=["【跨年大富翁・老公的意見】"];const b=PLANS.find(p=>p.id==fb.best);L.push("最想走："+(b?`方案 ${b.k} ${b.name}`:"還沒決定"));PLANS.forEach(p=>{if(fb.rate[p.id])L.push(`${p.k} ${p.name}：${fb.rate[p.id]}`)});if(fb.budget)L.push("預算感覺："+fb.budget);if(fb.text.trim())L.push("想說的話："+fb.text.trim());return L.join("\n")};
+ const txt=()=>{const L=["【跨年大富翁・老公的意見】"];PLANS.forEach(p=>{if(fb.rate[p.id])L.push(`${p.k} ${p.name}：${fb.rate[p.id]}`)});if(fb.budget)L.push("預算感覺："+fb.budget);if(fb.text.trim())L.push("想說的話："+fb.text.trim());return L.join("\n")};
  const upd=()=>{const t=txt();$("fbprev").textContent=t;$("fbline").href="https://line.me/R/share?text="+encodeURIComponent(t)};
  document.addEventListener("click",e=>{
   const c=e.target.closest(".chip");
@@ -955,7 +895,7 @@ document.addEventListener("click",e=>{
 /* mini games */
 {
  const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
- const EN={"老公的卡":"Husband's card","老婆的卡":"Wife's card","AA 各付一半":"Split 50/50","猜拳輸的付":"Rock-paper-scissors loser pays","老公請客":"Husband's treat","老婆請客":"Wife's treat","冰島熱狗堡":"Icelandic hot dog","羊肉湯":"Lamb soup","炸魚薯條":"Fish & chips","超市自己煮":"Cook from the supermarket","冰島優格 Skyr":"Skyr yogurt","加油站漢堡":"Gas-station burger","帝王蟹":"King crab","鮭魚奶油湯":"Creamy salmon soup","馴鹿肉排":"Reindeer steak","北極啤酒館":"Arctic beer hall","肉桂捲咖啡":"Cinnamon bun & coffee","可頌早餐":"Croissant breakfast","法式小酒館":"French bistro","可麗餅":"Crêpes","甜點店":"Pastry shop","生蠔白酒":"Oysters & white wine","麵包店三明治":"Bakery sandwich","列日鬆餅":"Liège waffle","淡菜配薯條":"Mussels & fries","比利時啤酒館":"Belgian beer bar","巧克力店":"Chocolate shop","炸薯條":"Belgian fries","燉牛肉":"Beef stew","荷蘭鬆餅":"Dutch pancakes","鯡魚堡":"Herring sandwich","起司店試吃":"Cheese tasting","印尼飯":"Indonesian rice table","炸肉丸":"Bitterballen","運河咖啡":"Canal-side café"};
+ const EN={"老公的卡":"Husband's card","老婆的卡":"Wife's card","AA 各付一半":"Split 50/50","猜拳輸的付":"Rock-paper-scissors loser pays","老公請客":"Husband's treat","老婆請客":"Wife's treat","炸魚薯條":"Fish & chips","超市自己煮":"Cook from the supermarket","帝王蟹":"King crab","鮭魚奶油湯":"Creamy salmon soup","馴鹿肉排":"Reindeer steak","北極啤酒館":"Arctic beer hall","肉桂捲咖啡":"Cinnamon bun & coffee","可頌早餐":"Croissant breakfast","法式小酒館":"French bistro","可麗餅":"Crêpes","甜點店":"Pastry shop","生蠔白酒":"Oysters & white wine","麵包店三明治":"Bakery sandwich","列日鬆餅":"Liège waffle","淡菜配薯條":"Mussels & fries","比利時啤酒館":"Belgian beer bar","巧克力店":"Chocolate shop","炸薯條":"Belgian fries","燉牛肉":"Beef stew","荷蘭鬆餅":"Dutch pancakes","鯡魚堡":"Herring sandwich","起司店試吃":"Cheese tasting","印尼飯":"Indonesian rice table","炸肉丸":"Bitterballen","運河咖啡":"Canal-side café"};
  const enS=t=>EN[t]?`<small class="en">${EN[t]}</small>`:"";
  const WC=["#f4a6b8","#f2b134","#8fd0c8","#a9c4f0","#ffd27a","#c9b3f2","#9ccf7a","#ffb38a"];
  function drawWheel(svg,items){const n=items.length,a=2*Math.PI/n;let h="";items.forEach((t,i)=>{const s=i*a-Math.PI/2,e=s+a,x1=100*Math.cos(s),y1=100*Math.sin(s),x2=100*Math.cos(e),y2=100*Math.sin(e),m=s+a/2,deg=m*180/Math.PI;h+=`<path d="M0 0L${x1.toFixed(2)} ${y1.toFixed(2)}A100 100 0 ${a>Math.PI?1:0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}Z" fill="${WC[i%WC.length]}" stroke="#2b2622" stroke-width="1.5"/><text transform="rotate(${deg.toFixed(1)}) translate(58 0) rotate(${deg>90&&deg<270?180:0})" text-anchor="middle" dominant-baseline="middle">${t.length>7?t.slice(0,7)+"…":t}</text>`});h+=`<circle r="100" fill="none" stroke="#2b2622" stroke-width="4"/><circle r="14" fill="#fff" stroke="#2b2622" stroke-width="3"/><circle r="5" fill="#e4572e"/>`;svg.innerHTML=h}
@@ -1001,11 +941,11 @@ document.addEventListener("click",e=>{
 
 const MONO=document.documentElement.dataset.mono==="1";
 function route(){
- const hsh=location.hash.slice(1),m=hsh.match(/^plan-([abcd])$/);
+ const hsh=location.hash.slice(1),m=hsh.match(/^plan-(c)$/);
  const rm=hsh.match(/^room=([a-z0-9]{6,32})$/);if(rm){joinRoom(rm[1]);view("dice");try{history.replaceState(null,"","#dice")}catch(e){}return}
  const dm=hsh.match(/^dice=(.+)$/);if(dm){loadShared(dm[1]);view("dice");try{history.replaceState(null,"","#dice")}catch(e){}return}
  if(m){if(m[1]!=cur)show(m[1],"");else view("plan");return}
- if(["routes","dice","quiz","fb","games"].includes(hsh)){go(hsh,false);return}
+ if(["routes","dice","fb","games"].includes(hsh)){go(hsh,false);return}
  view(MONO?"dice":"start");if(MONO)resetRing();
 }
 if(ROOM){listen();renderLive();fetch(roomURL()).then(r=>r.json()).then(applyRemote).catch(()=>{})}else renderLive();
